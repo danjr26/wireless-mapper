@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">WirelessMapper</string>
+    <string name="edit_message">Enter a message</string>
+    <string name="button_send">Send</string>
+    <string name="wifi_empty_name">[unnamed]</string>
+    <string name="wifi_byte_to_ssid_pref_key">com.wiprof.wirelessprofiler.wifi_byte_to_ssid</string>
+    <string name="wifi_ssid_to_index_pref_key">com.wiprof.wirelessprofiler.wifi_ssid_to_index</string>
+    <string name="map_marker_pref_key">com.wiprof.wirelessprofiler.map_marker_pref_key</string>
+    <string name="wifi_info_activity_title">WiFi Info</string>
+    <string name="wifi_info_box_default_text">Tap on anything above to learn more.</string>
+    <string name="wifi_ssid_attribute_info">
+        An access point\'s &lt;b&gt;SSID&lt;/b&gt; (&lt;b&gt;S&lt;/b&gt;ervice &lt;b&gt;S&lt;/b&gt;et
+        &lt;b&gt;ID&lt;/b&gt;entifier) is the name of the WiFi service set, or network, visible to the phone.
+        This is the name given in the phone\'s WiFi settings.&lt;br&gt;Different
+        physical access points can have the same &lt;b&gt;SSID&lt;/b&gt; - they are not unique.
+        This is commonly the case when an organization such as a business or school wants to
+    </string>
+    <string name="wifi_bssid_attribute_info">BSSID info</string>
+    <string name="wifi_capabilities_attribute_info">Capabilities info</string>
+    <string name="wifi_frequency_attribute_info">Frequency info</string>
+    <string name="wifi_channel_attribute_info">Channel info</string>
+    <string name="wifi_access_point_attribute_info">Name and &lt;b&gt;power&lt;/b&gt; info</string>
+    <string name="title_activity_pin_map">Pin Map</string>
+</resources>

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/AccessPoint"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/wifiAccessPointHeight"
+    android:animateLayoutChanges="true"
+    android:clickable="true"
+    android:hapticFeedbackEnabled="true"
+    android:onClick="onAccessPointClick"
+    android:padding="8dp">
+
+
+    <ImageView
+        android:id="@+id/WifiIconBackground"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/wifiIconMaxHeight"
+        android:adjustViewBounds="true"
+        android:tint="@color/colorWifiSignalBackground"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/wifi_icon" />
+
+    <ImageView
+        android:id="@+id/WifiIcon"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/wifiIconMaxHeight"
+        android:adjustViewBounds="true"
+        android:tint="@color/colorWifiSignal"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="@+id/WifiIconBackground"
+        app:layout_constraintEnd_toEndOf="@+id/WifiIconBackground"
+        app:layout_constraintStart_toStartOf="@+id/WifiIconBackground"
+        app:srcCompat="@drawable/wifi_icon" />
+
+    <Button
+        android:id="@+id/InfoButton"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:background="@color/colorContent"
+        android:elevation="5dp"
+        android:fontFamily="@font/open_sans_bold"
+        android:hapticFeedbackEnabled="true"
+        android:onClick="onInfoButtonClick"
+        android:text="More Info"
+        android:textColor="@color/colorDefaultText"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/TrackButton"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintHorizontal_chainStyle="spread"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/AccessPointName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:fontFamily="@font/open_sans_semibold"
+        android:text="TextView"
+        app:layout_constraintStart_toEndOf="@+id/WifiIconBackground"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/AccessPointDbm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:fontFamily="@font/open_sans_light"
+        android:text="TextView"
+        app:layout_constraintBaseline_toBaselineOf="@+id/AccessPointName"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/AccessPointPw"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="8dp"
+        android:fontFamily="@font/open_sans_light"
+        android:text="TextView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/AccessPointDbm" />
+
+    <Button
+        android:id="@+id/TrackButton"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:background="@color/colorContent"
+        android:fontFamily="@font/open_sans_bold"
+        android:hapticFeedbackEnabled="true"
+        android:onClick="onTrackButtonClick"
+        android:text="Track on Map"
+        android:visibility="gone"
+        app:layout_constraintBaseline_toBaselineOf="@+id/InfoButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/InfoButton" />
+
+
+</android.support.constraint.ConstraintLayout>

@@ -1,0 +1,126 @@
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/PinMapParent"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:animateLayoutChanges="true">
+
+    <fragment
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/PinMapBar"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:context="com.wiprof.wirelessprofiler.PinMap" />
+
+    <android.support.constraint.ConstraintLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/PinMapBar"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:animateLayoutChanges="true"
+        android:background="@color/colorTab"
+        app:layout_constraintBottom_toTopOf="@+id/PinMapInfoBox">
+
+        <ImageView
+            android:id="@+id/FilterListButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="@dimen/pinMapBarButtonSpacing"
+            android:background="@color/colorPrimary"
+            android:clickable="true"
+            android:onClick="onFilterListButtonClick"
+            android:padding="@dimen/pinMapBarButtonPadding"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/PinListButton"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/filter_list" />
+
+        <ImageView
+            android:id="@+id/PinListButton"
+            android:layout_width="40dp"
+            android:layout_height="0dp"
+            android:layout_marginStart="@dimen/pinMapBarButtonSpacing"
+            android:background="@color/colorPrimary"
+            android:clickable="true"
+            android:onClick="onPinListButtonClick"
+            android:padding="@dimen/pinMapBarButtonPadding"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/RemovePinButton"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/pin_list" />
+
+        <ImageView
+            android:id="@+id/RemovePinButton"
+            android:layout_width="40dp"
+            android:layout_height="0dp"
+            android:layout_marginStart="@dimen/pinMapBarButtonSpacing"
+            android:background="@color/colorPrimary"
+            android:clickable="true"
+            android:onClick="onRemovePinButtonClick"
+            android:padding="@dimen/pinMapBarButtonPadding"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/AddPinButton"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/remove_pin" />
+
+        <ImageView
+            android:id="@+id/AddPinButton"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_marginLeft="@dimen/pinMapBarButtonSpacing"
+            android:adjustViewBounds="true"
+            android:background="@color/colorPrimary"
+            android:clickable="true"
+            android:cropToPadding="true"
+            android:onClick="onNewPinButtonClick"
+            android:padding="@dimen/pinMapBarButtonPadding"
+            android:tint="@color/colorContent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/add_pin" />
+
+        <ImageView
+            android:id="@+id/ThreeButtonMenu"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_marginEnd="@dimen/pinMapBarButtonSpacing"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:background="@color/colorPrimary"
+            android:clickable="true"
+            android:padding="@dimen/pinMapBarButtonPadding"
+            android:tint="@color/colorContent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/three_dots_menu" />
+    </android.support.constraint.ConstraintLayout>
+
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/PinMapInfoBox"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/pinMapInfoBoxHeight"
+        android:background="@color/colorContent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+    </android.support.constraint.ConstraintLayout>
+
+    <TextView
+        android:id="@+id/TrackingLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:alpha="0.75"
+        android:text="asdfasdf"
+        android:textColor="@color/colorDefaultText"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</android.support.constraint.ConstraintLayout>
+

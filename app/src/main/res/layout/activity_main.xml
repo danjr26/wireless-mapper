@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/GlobalConstraint"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorAccent"
+    tools:context="com.wiprof.wirelessprofiler.MainActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@color/colorTab"
+            android:scrollbarSize="6dp">
+
+            <LinearLayout
+                android:id="@+id/TabLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:animateLayoutChanges="true"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/WifiTab"
+                    android:layout_width="@dimen/tabWidth"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@color/colorPrimaryDark"
+                    android:clickable="true"
+                    android:focusable="auto"
+                    android:fontFamily="@font/open_sans"
+                    android:gravity="center"
+                    android:onClick="onTabClick"
+                    android:padding="4dp"
+                    android:text="WiFi"
+                    android:textColor="@color/colorContent"
+                    android:textSize="@dimen/tabFontSize" />
+
+                <TextView
+                    android:id="@+id/BluetoothTab"
+                    android:layout_width="@dimen/tabWidth"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@color/colorTab"
+                    android:clickable="true"
+                    android:focusable="auto"
+                    android:fontFamily="@font/open_sans"
+                    android:gravity="center"
+                    android:onClick="onTabClick"
+                    android:padding="4dp"
+                    android:text="Bluetooth"
+                    android:textColor="@color/colorTabText"
+                    android:textSize="@dimen/tabFontSize" />
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true">
+
+            <FrameLayout
+                android:id="@+id/TabContentLayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/colorContent">
+
+                <LinearLayout
+                    android:id="@+id/BluetoothTabContent"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@color/colorContent"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/textView1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="16dp"
+                        android:background="@color/colorContent"
+                        android:elevation="5dp"
+                        android:fontFamily="@font/open_sans_light"
+                        android:outlineProvider="background"
+                        android:padding="8dp"
+                        android:text="Bluetooth Tab!"
+                        android:textColor="@color/colorDefaultText"
+                        android:textSize="18sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/WifiTabContent"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@color/colorContent"
+                    android:clipToPadding="false"
+                    android:elevation="0dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/ToMapButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="30dp"
+                        android:clickable="true"
+                        android:onClick="onToMapButtonClick"
+                        android:text="To Map →"
+                        android:textAlignment="center" />
+
+                    <TextView
+                        android:id="@+id/textView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="16dp"
+                        android:background="@color/colorContent"
+                        android:elevation="5dp"
+                        android:fontFamily="@font/open_sans_light"
+                        android:outlineProvider="background"
+                        android:padding="8dp"
+                        android:text="Wifi Tab!"
+                        android:textColor="@color/colorDefaultText"
+                        android:textSize="18sp" />
+
+                    <ListView
+                        android:id="@+id/WifiList"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/CellularTab"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/EmptyTab"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                </LinearLayout>
+            </FrameLayout>
+        </ScrollView>
+
+    </LinearLayout>
+
+</android.support.constraint.ConstraintLayout>
