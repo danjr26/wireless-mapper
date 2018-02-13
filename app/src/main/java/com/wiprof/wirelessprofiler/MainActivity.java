@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+    public static final int MY_PERMISSIONS_FINE_LOCATION = 0;
     private static MainActivity INSTANCE;
 
     private FusedLocationProviderClient locationProvider;

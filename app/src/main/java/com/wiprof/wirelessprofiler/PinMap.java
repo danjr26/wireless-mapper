@@ -1,18 +1,25 @@
 package com.wiprof.wirelessprofiler;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.location.Location;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.content.res.AppCompatResources;
 import android.view.HapticFeedbackConstants;
 import android.view.Menu;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -27,15 +34,18 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.security.Permission;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class PinMap extends AppCompatActivity implements OnMapReadyCallback {
+public class PinMap extends AppCompatActivity
+        implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowCloseListener {
 
     private GoogleMap map;
     private ArrayList<Pin> pins;
+    private int activePinIndex;
 
     private FusedLocationProviderClient locationProvider;
     private Location lastLocation;
@@ -67,6 +77,8 @@ public class PinMap extends AppCompatActivity implements OnMapReadyCallback {
         //clearSavedPins();
         loadPins();
 
+        activePinIndex = -1;
+
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -78,16 +90,19 @@ public class PinMap extends AppCompatActivity implements OnMapReadyCallback {
         map.getUiSettings().setCompassEnabled(false);
         map.getUiSettings().setIndoorLevelPickerEnabled(false);
         map.getUiSettings().setMapToolbarEnabled(false);
+        map.setOnMarkerClickListener(this);
+        map.setOnInfoWindowCloseListener(this);
 
         for(Pin pin : pins) {
             if(pin != null && pin.isValid()) {
                 pin.Display(map, filterMode, filter);
-            } else {
-                pin.isValid();
             }
         }
         if(pins.size() > 0) {
             map.animateCamera(CameraUpdateFactory.newLatLngZoom(pins.get(0).getLocation(), 18));
+        }
+        if(Build.VERSION.SDK_INT >= 23 && checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MainActivity.MY_PERMISSIONS_FINE_LOCATION);
         }
         map.setMyLocationEnabled(true);
     }
@@ -110,6 +125,29 @@ public class PinMap extends AppCompatActivity implements OnMapReadyCallback {
         super.onStop();
     }
 
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        activePinIndex = getPinIndexFromMarker(marker);
+        ((ImageView)findViewById(R.id.RemovePinButton)).setColorFilter(getResources().getColor(R.color.colorContent));
+        return false;
+    }
+
+    @Override
+    public void onInfoWindowClose(Marker marker) {
+        ((ImageView)findViewById(R.id.RemovePinButton)).setColorFilter(getResources().getColor(R.color.colorContentDisabled));
+        activePinIndex = -1;
+    }
+
+    public int getPinIndexFromMarker(Marker marker) {
+        for(int i = 0; i < pins.size(); i++) {
+            if(pins.get(i).getMarker().equals(marker)) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
     private void setupLocationProvider() {
         locationProvider = LocationServices.getFusedLocationProviderClient(this);
         lastLocation = null;
@@ -129,6 +167,16 @@ public class PinMap extends AppCompatActivity implements OnMapReadyCallback {
         locationProvider.requestLocationUpdates(locationRequest, locationCallback, null);
     }
 
+    public void addPin(Pin pin) {
+        pins.add(pin);
+        pin.Display(map, filterMode, filter);
+    }
+
+    public void removePin(Pin pin) {
+        pins.remove(pin);
+        pin.Hide();
+    }
+
     public void onNewPinButtonClick(View view) {
         view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
         if(lastLocation == null || wifiRefresher.lastRefreshTime == 0L) {
@@ -136,12 +184,19 @@ public class PinMap extends AppCompatActivity implements OnMapReadyCallback {
         }
         Pin pin = new Pin(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()),
                 wifiAccessPoints, wifiRefresher.lastRefreshTime);
-        pins.add(pin);
-        pin.Display(map, filterMode, filter);
+        addPin(pin);
     }
 
     public void onRemovePinButtonClick(View view) {
         view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+        if(activePinIndex < 0) {
+            return;
+        }
+        removePin(pins.get(activePinIndex));
+        activePinIndex = -1;
+
+        Toast toast = Toast.makeText(this, "Pin Removed", Toast.LENGTH_SHORT);
+        toast.show();
     }
 
     public void onPinListButtonClick(View view) {

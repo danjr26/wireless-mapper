@@ -12,4 +12,5 @@
     <color name="colorWifiSignal">#24bbb6</color>
     <color name="colorWifiSignalBackground">#e4e4ed</color>
     <color name="colorThreeDots">#000000</color>
+    <color name="colorContentDisabled">#626266</color>
 </resources>

@@ -57,6 +57,10 @@ public class Pin implements Serializable {
         this.location = location;
     }
 
+    public Marker getMarker() {
+        return marker;
+    }
+
     public boolean isValid() {
         return !(location == null || wifiInfo == null || location.latitude < -90.0 ||
                 location.latitude > 90.0 || location.longitude < -180.0 || location.latitude > 180.0);
@@ -67,7 +71,7 @@ public class Pin implements Serializable {
             marker.remove();
         }
 
-        float alpha = 0.4       f;
+        float alpha = 0.4f;
         float hue = 300.0f;
         String title = "not available";
         String snippet = "";
@@ -103,6 +107,11 @@ public class Pin implements Serializable {
                         .alpha(alpha)
                         .snippet(snippet)
         );
+    }
+
+    public void Hide() {
+        marker.remove();
+        marker = null;
     }
 
     private void writeObject(ObjectOutputStream outputStream) throws IOException {
