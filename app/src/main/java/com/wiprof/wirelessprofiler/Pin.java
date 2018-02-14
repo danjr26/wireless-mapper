@@ -4,9 +4,16 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
 
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -71,8 +78,8 @@ public class Pin implements Serializable {
             marker.remove();
         }
 
-        float alpha = 0.4f;
-        float hue = 300.0f;
+        float alpha = 1.0f;
+        float hsv[] = new float[] {0.0f, 0.0f, 0.5f};
         String title = "not available";
         String snippet = "";
 
@@ -89,7 +96,9 @@ public class Pin implements Serializable {
                         if(strength < -80) strength = -80;
                         if(strength > -40) strength = -40;
                         alpha = 1.0f;
-                        hue = 240 + ((strength + 40) * 6);
+                        hsv[0] = 240 + ((strength + 40) * 6);
+                        hsv[1] = 1.0f;
+                        hsv[2] = 1.0f;
                         break;
                     }
                 }
@@ -99,19 +108,32 @@ public class Pin implements Serializable {
                 break;
         }
 
+        int color = Color.HSVToColor(hsv);//MainActivity.getInstance().getResources().getColor(R.color.colorWifiSignal);
+        Bitmap bitmap = BitmapFactory.decodeResource(MainActivity.getInstance().getResources(), R.drawable.pin);
+        Bitmap tintedBitmap = tintBitmap(bitmap, color);
+
         marker = map.addMarker(
                 new MarkerOptions()
                         .position(location)
                         .title(title)
-                        .icon(BitmapDescriptorFactory.defaultMarker(hue))
                         .alpha(alpha)
                         .snippet(snippet)
+                        .icon(BitmapDescriptorFactory.fromBitmap(Bitmap.createScaledBitmap(tintedBitmap, 30, 100, false)))
         );
     }
 
     public void Hide() {
         marker.remove();
         marker = null;
+    }
+
+    private Bitmap tintBitmap(Bitmap bitmap, int color) {
+        Bitmap newBitmap = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), bitmap.getConfig());
+        Canvas canvas = new Canvas(newBitmap);
+        Paint paint = new Paint();
+        paint.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.MULTIPLY));
+        canvas.drawBitmap(bitmap, 0.0f, 0.0f, paint);
+        return newBitmap;
     }
 
     private void writeObject(ObjectOutputStream outputStream) throws IOException {

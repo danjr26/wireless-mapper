@@ -185,6 +185,9 @@ public class PinMap extends AppCompatActivity
         Pin pin = new Pin(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()),
                 wifiAccessPoints, wifiRefresher.lastRefreshTime);
         addPin(pin);
+
+        Toast toast = Toast.makeText(this, "Pin added", Toast.LENGTH_SHORT);
+        toast.show();
     }
 
     public void onRemovePinButtonClick(View view) {
@@ -195,7 +198,7 @@ public class PinMap extends AppCompatActivity
         removePin(pins.get(activePinIndex));
         activePinIndex = -1;
 
-        Toast toast = Toast.makeText(this, "Pin Removed", Toast.LENGTH_SHORT);
+        Toast toast = Toast.makeText(this, "Pin removed", Toast.LENGTH_SHORT);
         toast.show();
     }
 
