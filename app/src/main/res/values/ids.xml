@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="TimestampAttribute" type="id"/>
+    <item name="LatitudeAttribute" type="id"/>
+    <item name="LongitudeAttribute" type="id"/>
+</resources>

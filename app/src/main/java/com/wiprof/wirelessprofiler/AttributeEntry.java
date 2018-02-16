@@ -1,5 +1,8 @@
 package com.wiprof.wirelessprofiler;
 
+import android.support.constraint.ConstraintLayout;
+import android.widget.TextView;
+
 public class AttributeEntry {
     public String name;
     public String value;
@@ -9,5 +12,10 @@ public class AttributeEntry {
         name = in_name;
         value = in_value;
         infoText = in_infoText;
+    }
+
+    public void fillView(ConstraintLayout view) {
+        ((TextView)view.findViewById(R.id.AttributeEntryName)).setText(name);
+        ((TextView)view.findViewById(R.id.AttributeEntryValue)).setText(value);
     }
 }

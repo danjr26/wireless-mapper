@@ -3,6 +3,7 @@ package com.wiprof.wirelessprofiler;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.constraint.ConstraintLayout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,11 +33,7 @@ public class WifiAccessPointAdapter extends ArrayAdapter<WifiAccessPoint> {
             ((TextView)convertView.findViewById(R.id.AccessPointDbm)).setText("???");
             ((TextView)convertView.findViewById(R.id.AccessPointPw)).setText("???");
         } else {
-            ((TextView)convertView.findViewById(R.id.AccessPointName)).setText(accessPoint.getName());
-            ((TextView)convertView.findViewById(R.id.AccessPointDbm)).setText(Integer.toString(accessPoint.getStrengthDbm()) + " Dbm");
-            ((TextView)convertView.findViewById(R.id.AccessPointPw)).setText(Integer.toString(accessPoint.getStrengthPw()) + " pW");
-            ((ImageView)convertView.findViewById(R.id.WifiIcon)).getLayoutParams().height =
-                    accessPoint.getIconSize(MainActivity.getInstance().getResources().getDimensionPixelSize(R.dimen.wifiIconMaxHeight), -90, -40);
+            accessPoint.fillView((ConstraintLayout) convertView);
         }
 
         convertView.setBackgroundColor(getContext().getResources().getColor(R.color.colorContent));

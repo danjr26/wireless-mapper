@@ -3,6 +3,7 @@ package com.wiprof.wirelessprofiler;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.constraint.ConstraintLayout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,8 +26,7 @@ public class AttributeEntryAdapter extends ArrayAdapter<AttributeEntry> {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.item_attribute_entry, parent, false);
         }
 
-        ((TextView)convertView.findViewById(R.id.AttributeEntryName)).setText(attributeEntry.name);
-        ((TextView)convertView.findViewById(R.id.AttributeEntryValue)).setText(attributeEntry.value);
+        attributeEntry.fillView((ConstraintLayout) convertView);
 
         return convertView;
     }

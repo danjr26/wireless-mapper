@@ -33,7 +33,6 @@ public class WifiInfoActivity extends AppCompatActivity {
         accessPoint = (WifiAccessPoint) getIntent().getSerializableExtra("accessPoint");
 
         View accessPointView = getLayoutInflater().inflate(R.layout.item_wifi_access_point, (ViewGroup) findViewById(R.id.RootContainer), false);
-
         accessPointView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -42,21 +41,15 @@ public class WifiInfoActivity extends AppCompatActivity {
         });
         accessPointView.findViewById(R.id.WifiIcon).getLayoutParams().height =
                 accessPoint.getIconSize(getResources().getDimensionPixelSize(R.dimen.wifiIconMaxHeight), -90, -50);
-
         ConstraintLayout rootView = findViewById(R.id.RootContainer);
         rootView.addView(accessPointView);
-
         ConstraintSet constraintSet = new ConstraintSet();
         constraintSet.clone(rootView);
         constraintSet.connect(accessPointView.getId(), ConstraintSet.TOP, rootView.getId(), ConstraintSet.TOP, 0);
         constraintSet.connect(findViewById(R.id.DividerLine1).getId(), ConstraintSet.TOP, accessPointView.getId(), ConstraintSet.BOTTOM, 0);
-        //constraintSet.constrainMinHeight(accessPointView.getId(), 200);
         constraintSet.applyTo(rootView);
         rootView.invalidate();
         rootView.requestLayout();
-        //ViewStub accessPointStub = findViewById(R.id.AccessPointStub);
-        //accessPointStub.setLayoutResource(R.layout.item_wifi_access_point);
-        //((ViewStub)findViewById(R.id.AccessPointStub)).inflate();
 
         ArrayList<AttributeEntry> attributeEntries = new ArrayList();
         attributeEntries.add(new AttributeEntry("SSID",         accessPoint.getSSID(),

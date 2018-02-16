@@ -3,7 +3,10 @@ package com.wiprof.wirelessprofiler;
 import android.net.wifi.ScanResult;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
+import android.support.constraint.ConstraintLayout;
 import android.text.format.DateFormat;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
@@ -26,6 +29,14 @@ public class WifiAccessPoint implements Serializable {
         this.frequency =    scanResult.frequency;
         this.level =        scanResult.level;
         this.timestamp =    scanResult.timestamp;
+    }
+
+    public void fillView(@NonNull ConstraintLayout view) {
+        ((TextView)view.findViewById(R.id.AccessPointName)).setText(getName());
+        ((TextView)view.findViewById(R.id.AccessPointDbm)).setText(Integer.toString(getStrengthDbm()) + " Dbm");
+        ((TextView)view.findViewById(R.id.AccessPointPw)).setText(Integer.toString(getStrengthPw()) + " pW");
+        ((ImageView)view.findViewById(R.id.WifiIcon)).getLayoutParams().height =
+                getIconSize(MainActivity.getInstance().getResources().getDimensionPixelSize(R.dimen.wifiIconMaxHeight), -90, -40);
     }
 
     @NonNull

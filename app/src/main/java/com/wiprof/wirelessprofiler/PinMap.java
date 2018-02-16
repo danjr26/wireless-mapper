@@ -10,6 +10,8 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Handler;
+import android.support.constraint.ConstraintLayout;
+import android.support.constraint.ConstraintSet;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -17,6 +19,7 @@ import android.support.v7.content.res.AppCompatResources;
 import android.view.HapticFeedbackConstants;
 import android.view.Menu;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -35,10 +38,17 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.security.Permission;
+import java.text.SimpleDateFormat;
+import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.concurrent.TimeUnit;
 
 public class PinMap extends AppCompatActivity
         implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowCloseListener {
@@ -52,6 +62,7 @@ public class PinMap extends AppCompatActivity
 
     public enum FilterMode {
         FILTER_WIFI,
+        FILTER_CELLULAR,
         FILTER_BLUETOOTH
     }
 
@@ -59,6 +70,7 @@ public class PinMap extends AppCompatActivity
     private String filter;
 
     public WifiRefresher wifiRefresher;
+    public PinSnippetRefresher pinSnippetRefresher;
     private ArrayList<WifiAccessPoint> wifiAccessPoints;
 
     @Override
@@ -67,7 +79,9 @@ public class PinMap extends AppCompatActivity
         setContentView(R.layout.activity_pin_map);
 
         setupLocationProvider();
+        setupInfoBox();
 
+        pinSnippetRefresher = new PinSnippetRefresher((int)TimeUnit.MINUTES.toMillis(1));
         wifiAccessPoints = new ArrayList<>();
         wifiRefresher = new WifiRefresher(5000);
         pins = new ArrayList<>();
@@ -127,14 +141,43 @@ public class PinMap extends AppCompatActivity
 
     @Override
     public boolean onMarkerClick(Marker marker) {
+        findViewById(R.id.map).performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
         activePinIndex = getPinIndexFromMarker(marker);
         ((ImageView)findViewById(R.id.RemovePinButton)).setColorFilter(getResources().getColor(R.color.colorContent));
+
+        Pin pin = pins.get(activePinIndex);
+        switch (filterMode) {
+            case FILTER_WIFI:
+                ConstraintLayout accessPointView = findViewById(R.id.AccessPoint);
+                ConstraintLayout latitudeAttributeView = findViewById(R.id.LatitudeAttribute);
+                ConstraintLayout longitudeAttributeView = findViewById(R.id.LongitudeAttribute);
+                ConstraintLayout timestampAttributeView = findViewById(R.id.TimestampAttribute);
+
+                WifiAccessPoint accessPoint = pin.getWifiFilterResult(filter);
+                AttributeEntry latitudeAttribute = new AttributeEntry(
+                    "Latitude", Double.toString(pin.getLocation().latitude), ""
+                );
+                AttributeEntry longitudeAttribute = new AttributeEntry(
+                        "Longitude", Double.toString(pin.getLocation().longitude), ""
+                );
+                AttributeEntry timestampAttribute = new AttributeEntry(
+                        "Snapshot taken", pin.getReadableTimestamp(), "");
+
+                if(accessPoint != null) {
+                    accessPoint.fillView(accessPointView);
+                    latitudeAttribute.fillView(latitudeAttributeView);
+                    longitudeAttribute.fillView(longitudeAttributeView);
+                    timestampAttribute.fillView(timestampAttributeView);
+                    openInfoBox(pin);
+                }
+        }
         return false;
     }
 
     @Override
     public void onInfoWindowClose(Marker marker) {
         ((ImageView)findViewById(R.id.RemovePinButton)).setColorFilter(getResources().getColor(R.color.colorContentDisabled));
+        closeInfoBox();
         activePinIndex = -1;
     }
 
@@ -167,6 +210,50 @@ public class PinMap extends AppCompatActivity
         locationProvider.requestLocationUpdates(locationRequest, locationCallback, null);
     }
 
+    private void setupInfoBox() {
+        ConstraintLayout rootView = findViewById(R.id.PinMapInfoBox);
+
+        View accessPointView = getLayoutInflater().inflate(R.layout.item_wifi_access_point, rootView, false);
+        View latitudeView = getLayoutInflater().inflate(R.layout.item_attribute_entry, rootView, false);
+        View longitudeView = getLayoutInflater().inflate(R.layout.item_attribute_entry, rootView, false);
+        View timestampView = getLayoutInflater().inflate(R.layout.item_attribute_entry, rootView, false);
+
+        latitudeView.setId(R.id.LatitudeAttribute);
+        longitudeView.setId(R.id.LongitudeAttribute);
+        timestampView.setId(R.id.TimestampAttribute);
+
+        accessPointView.setOnClickListener(null);
+        latitudeView.setOnClickListener(null);
+        longitudeView.setOnClickListener(null);
+        timestampView.setOnClickListener(null);
+
+        rootView.addView(accessPointView);
+        rootView.addView(timestampView);
+        rootView.addView(latitudeView);
+        rootView.addView(longitudeView);
+
+        ConstraintSet constraintSet = new ConstraintSet();
+        constraintSet.clone(rootView);
+        constraintSet.connect(accessPointView.getId(), ConstraintSet.TOP, rootView.getId(), ConstraintSet.TOP, 0);
+        constraintSet.connect(latitudeView.getId(), ConstraintSet.TOP, accessPointView.getId(), ConstraintSet.BOTTOM, 0);
+        constraintSet.connect(longitudeView.getId(), ConstraintSet.TOP, latitudeView.getId(), ConstraintSet.BOTTOM, 0);
+        constraintSet.connect(timestampView.getId(), ConstraintSet.TOP, longitudeView.getId(), ConstraintSet.BOTTOM, 0);
+        constraintSet.applyTo(rootView);
+
+        rootView.invalidate();
+        rootView.requestLayout();
+    }
+
+    private void openInfoBox(Pin pin) {
+        ConstraintLayout infoBox = findViewById(R.id.PinMapInfoBox);
+        infoBox.setVisibility(View.VISIBLE);
+    }
+
+    private void closeInfoBox() {
+        ConstraintLayout infoBox = findViewById(R.id.PinMapInfoBox);
+        infoBox.setVisibility(View.GONE);
+    }
+
     public void addPin(Pin pin) {
         pins.add(pin);
         pin.Display(map, filterMode, filter);
@@ -175,6 +262,14 @@ public class PinMap extends AppCompatActivity
     public void removePin(Pin pin) {
         pins.remove(pin);
         pin.Hide();
+    }
+
+    public ArrayList<WifiAccessPoint> getAllWifiAccessPoints() {
+        HashSet<WifiAccessPoint> accessPoints = new HashSet<>();
+        for(Pin pin : pins) {
+            accessPoints.addAll(pin.getWifiInfo());
+        }
+        return new ArrayList<>(accessPoints);
     }
 
     public void onNewPinButtonClick(View view) {
@@ -266,6 +361,25 @@ public class PinMap extends AppCompatActivity
             }
 
             wifiManager.startScan();
+            handler.postDelayed(this, delay);
+        }
+    }
+
+    private class PinSnippetRefresher implements Runnable {
+        public int delay;
+        private Handler handler;
+
+        PinSnippetRefresher(int delay) {
+            this.delay = delay;
+            handler = new Handler();
+            handler.post(this);
+        }
+
+        @Override
+        public void run() {
+            for(Pin pin : pins) {
+                pin.updateSnippet();
+            }
             handler.postDelayed(this, delay);
         }
     }

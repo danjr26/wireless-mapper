@@ -31,6 +31,8 @@ import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import static android.content.Context.MODE_PRIVATE;
 
@@ -60,12 +62,74 @@ public class Pin implements Serializable {
         return location;
     }
 
+    public long getTime() {
+        return time;
+    }
+
+    public String getReadableTimestamp() {
+        return new SimpleDateFormat("yyyy-MM-dd  hh:mm:ss a", Locale.US).format(new Date(time));
+    }
+
+    public String getAgoTimestamp() {
+        long millis = System.currentTimeMillis() - time;
+        long minutes = TimeUnit.MILLISECONDS.toMinutes(millis);
+        long hours = TimeUnit.MILLISECONDS.toHours(millis);
+        long days = TimeUnit.MILLISECONDS.toDays(millis);
+        long years = (long)(days / 365.25);
+
+        if(years > 0) {
+            if(years == 1) {
+                return "last year";
+            }
+            return String.format(Locale.US,"%d years ago", years);
+        }
+        if(days > 0) {
+            if(days == 1) {
+                return "yesterday";
+            }
+            return String.format(Locale.US, "%d days ago", days);
+        }
+        if(hours > 0) {
+            if(hours == 1) {
+                return "an hour ago";
+            }
+            return String.format(Locale.US, "%d hours ago", hours);
+        }
+        if(minutes > 0) {
+            if(minutes == 1) {
+                return "a minute ago";
+            }
+            return String.format(Locale.US, "%d minutes ago", minutes);
+        }
+        return "moments ago";
+    }
+
     public void setLocation(LatLng location) {
         this.location = location;
     }
 
+    public void updateSnippet() {
+        if(marker != null) {
+            marker.setSnippet(getAgoTimestamp());
+        }
+    }
+
     public Marker getMarker() {
         return marker;
+    }
+
+    public ArrayList<WifiAccessPoint> getWifiInfo() {
+        return wifiInfo;
+    }
+
+    public WifiAccessPoint getWifiFilterResult(String filter) {
+        for(int i = 0; i < wifiInfo.size(); i++) {
+            WifiAccessPoint accessPoint = wifiInfo.get(i);
+            if(accessPoint != null && accessPoint.getName().equals(filter)) {
+               return accessPoint;
+            }
+        }
+        return null;
     }
 
     public boolean isValid() {
@@ -80,8 +144,8 @@ public class Pin implements Serializable {
 
         float alpha = 1.0f;
         float hsv[] = new float[] {0.0f, 0.0f, 0.5f};
-        String title = "not available";
-        String snippet = "";
+        String title = "N/A";
+        String snippet = getAgoTimestamp();
 
         switch(filterMode) {
             case FILTER_WIFI:
@@ -90,7 +154,6 @@ public class Pin implements Serializable {
                     if(accessPoint != null && accessPoint.getName().equals(filter)) {
                         wifiInfoActiveIndex = i;
                         title = Integer.toString(accessPoint.getStrengthDbm()) + " Dbm";
-                        snippet = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss a").format(new Date(time));
 
                         int strength = accessPoint.getStrengthDbm();
                         if(strength < -80) strength = -80;
