@@ -341,6 +341,7 @@ public class PinMap extends AppCompatActivity
 
         closeInfoBox();
         closePinList();
+
         View filterListView = findViewById(R.id.FilterListContainer);
         View backgroundTinter = findViewById(R.id.MenuBackgroundTinter);
         filterListView.setVisibility(View.VISIBLE);
@@ -418,14 +419,14 @@ public class PinMap extends AppCompatActivity
             }
         });
 
-        Collections.sort(deadAccessPoints, new Comparator<WifiAccessPoint>() {
+        Collections.sort(liveAccessPoints, new Comparator<WifiAccessPoint>() {
             @Override
             public int compare(WifiAccessPoint accessPoint1, WifiAccessPoint accessPoint2) {
                 if(accessPoint1.level < accessPoint2.level) {
-                    return -1;
+                    return 1;
                 }
                 if(accessPoint1.level > accessPoint2.level) {
-                    return 1;
+                    return -1;
                 }
                 return 0;
             }
