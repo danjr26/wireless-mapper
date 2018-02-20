@@ -1,11 +1,14 @@
 package com.wiprof.wirelessprofiler;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -80,6 +83,10 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
+        if(Build.VERSION.SDK_INT >= 23 && checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MainActivity.MY_PERMISSIONS_FINE_LOCATION);
+        }
+
         locationProvider.requestLocationUpdates(locationRequest, locationCallback, null);
 
         setActiveTab(findViewById(R.id.WifiTab));
@@ -99,14 +106,14 @@ public class MainActivity extends AppCompatActivity {
         ssidToIndexEditor.commit();
         */
 
-        accessPoints = new ArrayList();
+        accessPoints = new ArrayList<>();
         accessPointAdapter = new WifiAccessPointAdapter(this, accessPoints);
         ListView accessPointListView = findViewById(R.id.WifiList);
         accessPointListView.setAdapter(accessPointAdapter);
 
         wifiRefresher = new WifiRefresher(accessPointAdapter, 5000);
 
-        tabToContentPairing = new HashMap();
+        tabToContentPairing = new HashMap<>();
         tabToContentPairing.put((TextView) findViewById(R.id.WifiTab), findViewById(R.id.WifiTabContent));
         tabToContentPairing.put((TextView) findViewById(R.id.BluetoothTab), findViewById(R.id.BluetoothTabContent));
 
@@ -201,8 +208,11 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<Pin> pins = new ArrayList<>(1);
         pins.add(pin);
         Pin.putAllToIntent(pins, mapIntent);*/
+
         mapIntent.putExtra("filterMode", PinMap.FilterMode.FILTER_WIFI);
         mapIntent.putExtra("filter", accessPoint.getName());
+        mapIntent.putExtra("lastLatitude", lastLocation.getLatitude());
+        mapIntent.putExtra("lastLongitude", lastLocation.getLongitude());
         startActivity(mapIntent);
     }
 
@@ -261,7 +271,7 @@ public class MainActivity extends AppCompatActivity {
             List<ScanResult> scanResults = wifiManager.getScanResults();
             lastRefreshTime = System.currentTimeMillis();
 
-            Collections.sort(scanResults, new WifiStrengthComparator());
+            Collections.sort(scanResults, new SacnResultStrengthComparator());
 
             if (!isPaused) {
                 accessPointAdapter.clear();
@@ -283,10 +293,16 @@ public class MainActivity extends AppCompatActivity {
             isPaused = false;
         }
 
-        private class WifiStrengthComparator implements Comparator<ScanResult> {
+        private class SacnResultStrengthComparator implements Comparator<ScanResult> {
             @Override
             public int compare(ScanResult a, ScanResult b) {
-                return (a.level > b.level) ? -1 : 1;
+                if(a.level > b.level) {
+                    return -1;
+                }
+                if(a.level < b.level) {
+                    return 1;
+                }
+                return 0;
             }
         }
     }

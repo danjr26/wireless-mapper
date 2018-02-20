@@ -2,9 +2,8 @@ package com.wiprof.wirelessprofiler;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.SharedPreferences;
+import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.ColorStateList;
 import android.location.Location;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
@@ -12,15 +11,14 @@ import android.os.Build;
 import android.os.Handler;
 import android.support.constraint.ConstraintLayout;
 import android.support.constraint.ConstraintSet;
-import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.content.res.AppCompatResources;
+import android.view.GestureDetector;
 import android.view.HapticFeedbackConstants;
-import android.view.Menu;
+import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,23 +33,16 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 
-import java.security.Permission;
-import java.text.SimpleDateFormat;
-import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.SortedSet;
 import java.util.concurrent.TimeUnit;
 
 public class PinMap extends AppCompatActivity
-        implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowCloseListener {
+        implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowCloseListener,
+        GestureDetector.OnGestureListener {
 
     private GoogleMap map;
     private ArrayList<Pin> pins;
@@ -59,6 +50,7 @@ public class PinMap extends AppCompatActivity
 
     private FusedLocationProviderClient locationProvider;
     private Location lastLocation;
+    private GestureDetector gestureDetector;
 
     public enum FilterMode {
         FILTER_WIFI,
@@ -73,22 +65,33 @@ public class PinMap extends AppCompatActivity
     public PinSnippetRefresher pinSnippetRefresher;
     private ArrayList<WifiAccessPoint> wifiAccessPoints;
 
+    private WifiFilterListEntryAdapter wifiFilterListEntryAdapter;
+    private ArrayList<WifiAccessPoint> wifiFilterListAccessPoints;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pin_map);
 
+        gestureDetector = new GestureDetector(this, this);
+
         setupLocationProvider();
         setupInfoBox();
+
+        Intent intent = getIntent();
 
         pinSnippetRefresher = new PinSnippetRefresher((int)TimeUnit.MINUTES.toMillis(1));
         wifiAccessPoints = new ArrayList<>();
         wifiRefresher = new WifiRefresher(5000);
         pins = new ArrayList<>();
-        setFilterMode((FilterMode)getIntent().getSerializableExtra("filterMode"));
-        setFilter(getIntent().getStringExtra("filter"));
+        setFilterMode((FilterMode)intent.getSerializableExtra("filterMode"));
+        setFilter(intent.getStringExtra("filter"));
 
-        //clearSavedPins();
+        ListView filterWifiList = findViewById(R.id.FilterWifiList);
+        wifiFilterListEntryAdapter = new WifiFilterListEntryAdapter(this, new ArrayList<WifiAccessPoint>());
+        filterWifiList.setAdapter(wifiFilterListEntryAdapter);
+        wifiFilterListAccessPoints = new ArrayList<>();
+
         loadPins();
 
         activePinIndex = -1;
@@ -97,6 +100,13 @@ public class PinMap extends AppCompatActivity
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
     }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent motionEvent) {
+        super.dispatchTouchEvent(motionEvent );
+        return gestureDetector.onTouchEvent(motionEvent);
+    }
+
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -112,9 +122,13 @@ public class PinMap extends AppCompatActivity
                 pin.Display(map, filterMode, filter);
             }
         }
-        if(pins.size() > 0) {
-            map.animateCamera(CameraUpdateFactory.newLatLngZoom(pins.get(0).getLocation(), 18));
-        }
+
+        Intent intent = getIntent();
+
+        LatLng location = new LatLng(intent.getDoubleExtra("lastLatitude", 0.0), intent.getDoubleExtra("lastLongitude", 0.0));
+
+        map.animateCamera(CameraUpdateFactory.newLatLngZoom(location, 18));
+
         if(Build.VERSION.SDK_INT >= 23 && checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MainActivity.MY_PERMISSIONS_FINE_LOCATION);
         }
@@ -137,6 +151,44 @@ public class PinMap extends AppCompatActivity
     protected void onStop() {
         savePins();
         super.onStop();
+    }
+
+    @Override
+    public boolean onDown(MotionEvent motionEvent) {
+        return true;
+    }
+
+    @Override
+    public void onShowPress(MotionEvent motionEvent) {
+
+    }
+
+    @Override
+    public boolean onSingleTapUp(MotionEvent motionEvent) {
+        return true;
+    }
+
+    @Override
+    public boolean onScroll(MotionEvent motionEvent, MotionEvent motionEvent1, float v, float v1) {
+        return true;
+    }
+
+    @Override
+    public void onLongPress(MotionEvent motionEvent) {
+
+    }
+
+    @Override
+    public boolean onFling(MotionEvent motionEvent, MotionEvent motionEvent1, float xVelocity, float yVelocity) {
+        if(isPinListOpen() && xVelocity < -300.0f && Math.abs(yVelocity / xVelocity) < 0.5f) {
+            closePinList();
+            return true;
+        }
+        if(isFilterListOpen() && xVelocity > 300.0f && Math.abs(yVelocity / xVelocity) < 0.5f) {
+            closeFilterList();
+            return true;
+        }
+        return true;
     }
 
     @Override
@@ -245,13 +297,67 @@ public class PinMap extends AppCompatActivity
     }
 
     private void openInfoBox(Pin pin) {
-        ConstraintLayout infoBox = findViewById(R.id.PinMapInfoBox);
+        closeFilterList();
+        closePinList();
+        View infoBox = findViewById(R.id.PinMapInfoBox);
         infoBox.setVisibility(View.VISIBLE);
     }
 
     private void closeInfoBox() {
-        ConstraintLayout infoBox = findViewById(R.id.PinMapInfoBox);
+        View infoBox = findViewById(R.id.PinMapInfoBox);
         infoBox.setVisibility(View.GONE);
+    }
+
+    private boolean isInfoBoxOpen() {
+        View infoBox = findViewById(R.id.PinMapInfoBox);
+        return infoBox.getVisibility() == View.VISIBLE;
+    }
+
+    private void openPinList() {
+        closeInfoBox();
+        closeFilterList();
+        View pinListView = findViewById(R.id.PinListContainer);
+        View backgroundTinter = findViewById(R.id.MenuBackgroundTinter);
+        pinListView.setVisibility(View.VISIBLE);
+        backgroundTinter.setVisibility(View.VISIBLE);
+    }
+
+    private void closePinList() {
+        View pinListView = findViewById(R.id.PinListContainer);
+        ImageView backgroundTinter = findViewById(R.id.MenuBackgroundTinter);
+        pinListView.setVisibility(View.GONE);
+        backgroundTinter.setVisibility(View.GONE);
+    }
+
+    private boolean isPinListOpen() {
+        View pinListView = findViewById(R.id.PinListContainer);
+        return pinListView.getVisibility() == View.VISIBLE;
+    }
+
+    private void openFilterList() {
+        wifiFilterListAccessPoints = getAllWifiAccessPoints();
+        wifiFilterListEntryAdapter.clear();
+        wifiFilterListEntryAdapter.addAll(wifiFilterListAccessPoints);
+
+        closeInfoBox();
+        closePinList();
+        View filterListView = findViewById(R.id.FilterListContainer);
+        View backgroundTinter = findViewById(R.id.MenuBackgroundTinter);
+        filterListView.setVisibility(View.VISIBLE);
+        backgroundTinter.setVisibility(View.VISIBLE);
+    }
+
+    private void closeFilterList() {
+        View filterListView = findViewById(R.id.FilterListContainer);
+        ImageView backgroundTinter = findViewById(R.id.MenuBackgroundTinter);
+        filterListView.setVisibility(View.GONE);
+        backgroundTinter.setVisibility(View.GONE);
+    }
+
+    private boolean isFilterListOpen() {
+        View filterListView = findViewById(R.id.FilterListContainer);
+        int visibility = filterListView.getVisibility();
+        return visibility == View.VISIBLE;
     }
 
     public void addPin(Pin pin) {
@@ -265,11 +371,89 @@ public class PinMap extends AppCompatActivity
     }
 
     public ArrayList<WifiAccessPoint> getAllWifiAccessPoints() {
-        HashSet<WifiAccessPoint> accessPoints = new HashSet<>();
+        ArrayList<WifiAccessPoint> accessPoints = new ArrayList<>(pins.size() + wifiAccessPoints.size());
+        boolean isNew;
         for(Pin pin : pins) {
-            accessPoints.addAll(pin.getWifiInfo());
+            ArrayList<WifiAccessPoint> pinAccessPoints = pin.getWifiInfo();
+            for(WifiAccessPoint pinAccessPoint : pinAccessPoints) {
+                isNew = true;
+                for(WifiAccessPoint accessPoint : accessPoints) {
+                    if((accessPoint.getName()).equals(pinAccessPoint.getName())) {
+                        isNew = false;
+                        break;
+                    }
+                }
+                if(isNew) {
+                    WifiAccessPoint pinAccessPointCopy = new WifiAccessPoint(pinAccessPoint);
+                    pinAccessPointCopy.Drain();
+                    accessPoints.add(pinAccessPointCopy);
+                }
+            }
         }
-        return new ArrayList<>(accessPoints);
+
+        for(WifiAccessPoint activeAccessPoint : wifiAccessPoints) {
+            for(int i = 0; i < accessPoints.size(); i++) {
+                if((accessPoints.get(i).getName()).equals(activeAccessPoint.getName())) {
+                    accessPoints.set(i, activeAccessPoint);
+                }
+            }
+        }
+
+        ArrayList<WifiAccessPoint> deadAccessPoints = new ArrayList<>(pins.size());
+        ArrayList<WifiAccessPoint> liveAccessPoints = new ArrayList<>(wifiAccessPoints.size());
+        for (WifiAccessPoint accessPoint : accessPoints) {
+            if(accessPoint.level == 0) {
+                deadAccessPoints.add(accessPoint);
+            } else {
+                liveAccessPoints.add(accessPoint);
+            }
+        }
+
+        Collections.sort(deadAccessPoints, new Comparator<WifiAccessPoint>() {
+            @Override
+            public int compare(WifiAccessPoint accessPoint1, WifiAccessPoint accessPoint2) {
+                String name1 = accessPoint1.getName();
+                String name2 = accessPoint2.getName();
+                return  name1.compareToIgnoreCase(name2);
+            }
+        });
+
+        Collections.sort(deadAccessPoints, new Comparator<WifiAccessPoint>() {
+            @Override
+            public int compare(WifiAccessPoint accessPoint1, WifiAccessPoint accessPoint2) {
+                if(accessPoint1.level < accessPoint2.level) {
+                    return -1;
+                }
+                if(accessPoint1.level > accessPoint2.level) {
+                    return 1;
+                }
+                return 0;
+            }
+        });
+
+        accessPoints.clear();
+        accessPoints.addAll(liveAccessPoints);
+        accessPoints.addAll(deadAccessPoints);
+
+        return accessPoints;
+    }
+
+    public void onWifiFilterListEntryClick(View view) {
+        view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+        int index = ((ListView) view.getParent()).indexOfChild(view);
+        WifiAccessPoint accessPoint = wifiFilterListAccessPoints.get(index);
+
+        setFilterMode(FilterMode.FILTER_WIFI);
+        setFilter(accessPoint.getName());
+
+        for(Pin pin : pins) {
+            if(pin != null && pin.isValid()) {
+                pin.Hide();
+                pin.Display(map, filterMode, filter);
+            }
+        }
+
+        closeFilterList();
     }
 
     public void onNewPinButtonClick(View view) {
@@ -299,10 +483,12 @@ public class PinMap extends AppCompatActivity
 
     public void onPinListButtonClick(View view) {
         view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+        openPinList();
     }
 
     public void onFilterListButtonClick(View view) {
         view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+        openFilterList();
     }
 
     protected void savePins() {

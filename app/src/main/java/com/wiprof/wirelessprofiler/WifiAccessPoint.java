@@ -4,13 +4,12 @@ import android.net.wifi.ScanResult;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
-import android.text.format.DateFormat;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.util.Comparator;
 import java.util.Date;
 
 public class WifiAccessPoint implements Serializable {
@@ -21,6 +20,15 @@ public class WifiAccessPoint implements Serializable {
     public int frequency;
     public int level;
     public long timestamp;
+
+    public WifiAccessPoint(@NonNull WifiAccessPoint source) {
+        this.SSID =         source.SSID;
+        this.BSSID =        source.BSSID;
+        this.capabilities = source.capabilities;
+        this.frequency =    source.frequency;
+        this.level =        source.level;
+        this.timestamp =    source.timestamp;
+    }
 
     public WifiAccessPoint(@NonNull ScanResult scanResult) {
         this.SSID =         scanResult.SSID;
@@ -33,7 +41,7 @@ public class WifiAccessPoint implements Serializable {
 
     public void fillView(@NonNull ConstraintLayout view) {
         ((TextView)view.findViewById(R.id.AccessPointName)).setText(getName());
-        ((TextView)view.findViewById(R.id.AccessPointDbm)).setText(Integer.toString(getStrengthDbm()) + " Dbm");
+        ((TextView)view.findViewById(R.id.AccessPointStrengthDbm)).setText(Integer.toString(getStrengthDbm()) + " Dbm");
         ((TextView)view.findViewById(R.id.AccessPointPw)).setText(Integer.toString(getStrengthPw()) + " pW");
         ((ImageView)view.findViewById(R.id.WifiIcon)).getLayoutParams().height =
                 getIconSize(MainActivity.getInstance().getResources().getDimensionPixelSize(R.dimen.wifiIconMaxHeight), -90, -40);
@@ -118,5 +126,10 @@ public class WifiAccessPoint implements Serializable {
 
     public int getFrequency() {
         return frequency;
+    }
+
+    public void Drain() {
+        level = 0;
+        timestamp = 0L;
     }
 }

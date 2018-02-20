@@ -65,7 +65,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/AccessPointDbm"
+        android:id="@+id/AccessPointStrengthDbm"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
@@ -83,7 +83,7 @@
         android:fontFamily="@font/open_sans_light"
         android:text="TextView"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/AccessPointDbm" />
+        app:layout_constraintTop_toBottomOf="@+id/AccessPointStrengthDbm" />
 
     <Button
         android:id="@+id/TrackButton"

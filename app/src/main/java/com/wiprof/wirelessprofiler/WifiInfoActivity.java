@@ -67,7 +67,7 @@ public class WifiInfoActivity extends AppCompatActivity {
         ((ListView)findViewById(R.id.AttributeList)).setAdapter(attributeEntryAdapter);
 
         ((TextView)findViewById(R.id.AccessPointName)).setText(accessPoint.getName());
-        ((TextView)findViewById(R.id.AccessPointDbm)).setText(Integer.toString(accessPoint.getStrengthDbm()) + " Dbm");
+        ((TextView)findViewById(R.id.AccessPointStrengthDbm)).setText(Integer.toString(accessPoint.getStrengthDbm()) + " Dbm");
         ((TextView)findViewById(R.id.AccessPointPw)).setText(Integer.toString(accessPoint.getStrengthPw()) + " pW");
 
         wifiRefresher = new WifiRefresher(5000);
@@ -126,7 +126,7 @@ public class WifiInfoActivity extends AppCompatActivity {
                 if (result != null && result.BSSID.equals(accessPoint.getBSSID()) && result.SSID.equals(accessPoint.getSSID())) {
                     accessPoint = new WifiAccessPoint(result);
                     ((TextView)findViewById(R.id.AccessPointName)).setText(accessPoint.getName());
-                    ((TextView)findViewById(R.id.AccessPointDbm)).setText(Integer.toString(accessPoint.getStrengthDbm()) + " Dbm");
+                    ((TextView)findViewById(R.id.AccessPointStrengthDbm)).setText(Integer.toString(accessPoint.getStrengthDbm()) + " Dbm");
                     ((TextView)findViewById(R.id.AccessPointPw)).setText(Integer.toString(accessPoint.getStrengthPw()) + " pW");
                     ((ImageView)findViewById(R.id.WifiIcon)).getLayoutParams().height =
                             accessPoint.getIconSize(getResources().getDimensionPixelSize(R.dimen.wifiIconMaxHeight), -90, -50);

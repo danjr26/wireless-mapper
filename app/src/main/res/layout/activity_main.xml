@@ -15,7 +15,7 @@
 
         <HorizontalScrollView
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="@dimen/tabHeight"
             android:background="@color/colorTab"
             android:scrollbarSize="6dp">
 
@@ -109,7 +109,8 @@
                         android:clickable="true"
                         android:onClick="onToMapButtonClick"
                         android:text="To Map →"
-                        android:textAlignment="center" />
+                        android:textAlignment="center"
+                        android:visibility="gone" />
 
                     <TextView
                         android:id="@+id/textView"
@@ -123,7 +124,8 @@
                         android:padding="8dp"
                         android:text="Wifi Tab!"
                         android:textColor="@color/colorDefaultText"
-                        android:textSize="18sp" />
+                        android:textSize="18sp"
+                        android:visibility="gone" />
 
                     <ListView
                         android:id="@+id/WifiList"
