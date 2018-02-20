@@ -17,6 +17,7 @@ import android.view.GestureDetector;
 import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -66,6 +67,8 @@ public class PinMap extends AppCompatActivity
     private ArrayList<WifiAccessPoint> wifiAccessPoints;
 
     private WifiFilterListEntryAdapter wifiFilterListEntryAdapter;
+    private ArrayList<WifiAccessPoint> wifiFilterListLiveAccessPoints;
+    private ArrayList<WifiAccessPoint> wifiFilterListDeadAccessPoints;
     private ArrayList<WifiAccessPoint> wifiFilterListAccessPoints;
 
     @Override
@@ -90,9 +93,10 @@ public class PinMap extends AppCompatActivity
         ListView filterWifiList = findViewById(R.id.FilterWifiList);
         wifiFilterListEntryAdapter = new WifiFilterListEntryAdapter(this, new ArrayList<WifiAccessPoint>());
         filterWifiList.setAdapter(wifiFilterListEntryAdapter);
-        wifiFilterListAccessPoints = new ArrayList<>();
 
         loadPins();
+
+        setupWifiFilterAccessPoints();
 
         activePinIndex = -1;
 
@@ -339,7 +343,7 @@ public class PinMap extends AppCompatActivity
     }
 
     private void openFilterList() {
-        wifiFilterListAccessPoints = getAllWifiAccessPoints();
+        updateWifiFilterListAccessPoints();
         wifiFilterListEntryAdapter.clear();
         wifiFilterListEntryAdapter.addAll(wifiFilterListAccessPoints);
 
@@ -367,80 +371,118 @@ public class PinMap extends AppCompatActivity
 
     public void addPin(Pin pin) {
         pins.add(pin);
+        for(WifiAccessPoint accessPoint : pin.getWifiInfo()) {
+            addWifiFilterPinAccessPoint(accessPoint);
+        }
         pin.Display(map, filterMode, filter);
     }
 
     public void removePin(Pin pin) {
         pins.remove(pin);
+        for(WifiAccessPoint accessPoint : pin.getWifiInfo()) {
+            removeWifiFilterPinAccessPoint(wifiFilterListDeadAccessPoints.indexOf(accessPoint));
+        }
         pin.Hide();
     }
 
-    public ArrayList<WifiAccessPoint> getAllWifiAccessPoints() {
-        ArrayList<WifiAccessPoint> accessPoints = new ArrayList<>(pins.size() + wifiAccessPoints.size());
-        boolean isNew;
+    public boolean addWifiFilterLiveAccessPoint(WifiAccessPoint accessPoint) {
+        for(int i = 0; i < wifiFilterListLiveAccessPoints.size(); i++) {
+            if(wifiFilterListLiveAccessPoints.get(i).getStrengthDbm() < accessPoint.getStrengthDbm()) {
+                wifiFilterListLiveAccessPoints.add(i, accessPoint);
+                return true;
+            }
+        }
+
+        wifiFilterListLiveAccessPoints.add(accessPoint);
+        return true;
+    }
+
+    public boolean removeWifiFilterLiveAccessPoint(int index) {
+        wifiFilterListLiveAccessPoints.remove(index);
+        return true;
+    }
+
+    public void clearWifiFilterLiveAccessPoints() {
+        wifiFilterListLiveAccessPoints.clear();
+    }
+
+    public boolean addWifiFilterPinAccessPoint(WifiAccessPoint accessPoint) {
+        for(WifiAccessPoint listedAccessPoint : wifiFilterListDeadAccessPoints) {
+            if((accessPoint.getName()).equals(listedAccessPoint.getName())) {
+                return false;
+            }
+        }
+
+        WifiAccessPoint accessPointCopy = new WifiAccessPoint(accessPoint);
+        accessPointCopy.Drain();
+
+        for(int i = 0; i < wifiFilterListDeadAccessPoints.size(); i++) {
+            if(wifiFilterListDeadAccessPoints.get(i).getName().compareToIgnoreCase(accessPointCopy.getName()) > 0) {
+                wifiFilterListDeadAccessPoints.add(i, accessPointCopy);
+                return true;
+            }
+        }
+
+        wifiFilterListDeadAccessPoints.add(accessPointCopy);
+        return true;
+    }
+
+    public boolean removeWifiFilterPinAccessPoint(int index) {
+        WifiAccessPoint accessPoint = wifiFilterListDeadAccessPoints.get(index);
         for(Pin pin : pins) {
-            ArrayList<WifiAccessPoint> pinAccessPoints = pin.getWifiInfo();
-            for(WifiAccessPoint pinAccessPoint : pinAccessPoints) {
-                isNew = true;
-                for(WifiAccessPoint accessPoint : accessPoints) {
-                    if((accessPoint.getName()).equals(pinAccessPoint.getName())) {
-                        isNew = false;
-                        break;
-                    }
-                }
-                if(isNew) {
-                    WifiAccessPoint pinAccessPointCopy = new WifiAccessPoint(pinAccessPoint);
-                    pinAccessPointCopy.Drain();
-                    accessPoints.add(pinAccessPointCopy);
+            for(WifiAccessPoint pinAccessPoint : pin.getWifiInfo()) {
+                if(accessPoint.getName().equals(pinAccessPoint.getName())) {
+                    return false;
                 }
             }
         }
 
-        for(WifiAccessPoint activeAccessPoint : wifiAccessPoints) {
-            for(int i = 0; i < accessPoints.size(); i++) {
-                if((accessPoints.get(i).getName()).equals(activeAccessPoint.getName())) {
-                    accessPoints.set(i, activeAccessPoint);
-                }
-            }
+        wifiFilterListDeadAccessPoints.remove(index);
+        return true;
+    }
+
+    public void clearWifiFilterDeadAccessPoints() {
+        wifiFilterListDeadAccessPoints.clear();
+    }
+
+    public void setupWifiFilterAccessPoints() {
+        int size = 0;
+        for(Pin pin : pins) {
+            size += pin.getWifiInfo().size();
         }
 
-        ArrayList<WifiAccessPoint> deadAccessPoints = new ArrayList<>(pins.size());
-        ArrayList<WifiAccessPoint> liveAccessPoints = new ArrayList<>(wifiAccessPoints.size());
-        for (WifiAccessPoint accessPoint : accessPoints) {
-            if(accessPoint.level == 0) {
-                deadAccessPoints.add(accessPoint);
-            } else {
-                liveAccessPoints.add(accessPoint);
+        wifiFilterListLiveAccessPoints = new ArrayList<>(20);
+        wifiFilterListDeadAccessPoints = new ArrayList<>(size);
+        wifiFilterListAccessPoints = new ArrayList<>(size + 20);
+
+        for(Pin pin : pins) {
+            for(WifiAccessPoint accessPoint : pin.getWifiInfo()) {
+                addWifiFilterPinAccessPoint(accessPoint);
             }
         }
+    }
 
-        Collections.sort(deadAccessPoints, new Comparator<WifiAccessPoint>() {
-            @Override
-            public int compare(WifiAccessPoint accessPoint1, WifiAccessPoint accessPoint2) {
-                String name1 = accessPoint1.getName();
-                String name2 = accessPoint2.getName();
-                return  name1.compareToIgnoreCase(name2);
-            }
-        });
+    public void updateWifiFilterListAccessPoints() {
+        wifiFilterListAccessPoints.clear();
+        clearWifiFilterLiveAccessPoints();
+        for(WifiAccessPoint accessPoint : wifiAccessPoints) {
+            addWifiFilterLiveAccessPoint(accessPoint);
+        }
 
-        Collections.sort(liveAccessPoints, new Comparator<WifiAccessPoint>() {
-            @Override
-            public int compare(WifiAccessPoint accessPoint1, WifiAccessPoint accessPoint2) {
-                if(accessPoint1.level < accessPoint2.level) {
-                    return 1;
+        wifiFilterListAccessPoints.ensureCapacity(wifiFilterListDeadAccessPoints.size() + wifiFilterListLiveAccessPoints.size());
+        wifiFilterListAccessPoints.addAll(wifiFilterListLiveAccessPoints);
+        for(WifiAccessPoint deadAccessPoint : wifiFilterListDeadAccessPoints) {
+            boolean isNew = true;
+            for(WifiAccessPoint liveAccessPoint : wifiFilterListLiveAccessPoints) {
+                if(deadAccessPoint.getName().equals(liveAccessPoint.getName())) {
+                    isNew = false;
+                    break;
                 }
-                if(accessPoint1.level > accessPoint2.level) {
-                    return -1;
-                }
-                return 0;
             }
-        });
-
-        accessPoints.clear();
-        accessPoints.addAll(liveAccessPoints);
-        accessPoints.addAll(deadAccessPoints);
-
-        return accessPoints;
+            if(isNew) {
+                wifiFilterListAccessPoints.add(deadAccessPoint);
+            }
+        }
     }
 
     public void onWifiFilterListEntryClick(View view) {
