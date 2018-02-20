@@ -37,6 +37,8 @@ public class WifiAccessPointAdapter extends ArrayAdapter<WifiAccessPoint> {
 
         convertView.setBackgroundColor(getContext().getResources().getColor(R.color.colorContent));
 
+        convertView.setTag(position);
+
         return convertView;
     }
 }

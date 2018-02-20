@@ -39,6 +39,8 @@ public class WifiFilterListEntryAdapter extends ArrayAdapter<WifiAccessPoint> {
             ((TextView) convertView.findViewById(R.id.AccessPointStrengthDbm)).setText("N/A");
         }
 
+        convertView.setTag(position);
+
         return convertView;
     }
 }

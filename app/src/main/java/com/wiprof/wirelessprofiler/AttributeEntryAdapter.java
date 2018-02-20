@@ -27,6 +27,7 @@ public class AttributeEntryAdapter extends ArrayAdapter<AttributeEntry> {
         }
 
         attributeEntry.fillView((ConstraintLayout) convertView);
+        convertView.setTag(position);
 
         return convertView;
     }

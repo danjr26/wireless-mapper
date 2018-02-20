@@ -190,7 +190,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void onInfoButtonClick(View view) {
         view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
-        int index = ((ListView) view.getParent().getParent()).indexOfChild((View)view.getParent());
+        int index = (int)((View)view.getParent()).getTag();
         WifiAccessPoint accessPoint = wifiRefresher.accessPointAdapter.getItem(index);
         Intent infoIntent = new Intent(this, WifiInfoActivity.class);
         infoIntent.putExtra("accessPoint", accessPoint);
@@ -199,7 +199,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void onTrackButtonClick(View view) {
         view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
-        int index = ((ListView) view.getParent().getParent()).indexOfChild((View)view.getParent());
+        int index = (int)((View)view.getParent()).getTag();
         WifiAccessPoint accessPoint = wifiRefresher.accessPointAdapter.getItem(index);
 
         Intent mapIntent = new Intent(this, PinMap.class);

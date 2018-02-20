@@ -259,6 +259,10 @@ public class PinMap extends AppCompatActivity
             }
         };
 
+        if(Build.VERSION.SDK_INT >= 23 && checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MainActivity.MY_PERMISSIONS_FINE_LOCATION);
+        }
+
         locationProvider.requestLocationUpdates(locationRequest, locationCallback, null);
     }
 
@@ -441,7 +445,7 @@ public class PinMap extends AppCompatActivity
 
     public void onWifiFilterListEntryClick(View view) {
         view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
-        int index = ((ListView) view.getParent()).indexOfChild(view);
+        int index = (int)view.getTag();
         WifiAccessPoint accessPoint = wifiFilterListAccessPoints.get(index);
 
         setFilterMode(FilterMode.FILTER_WIFI);
