@@ -446,6 +446,8 @@ public class PinMap extends AppCompatActivity
             addWifiFilterPinAccessPoint(accessPoint);
         }
         pin.Display(map, filterMode, filter);
+
+        savePins();
     }
 
     public void removePin(Pin pin) {
@@ -459,6 +461,8 @@ public class PinMap extends AppCompatActivity
             }
         }
         pin.Hide();
+
+        savePins();
     }
 
     public boolean addWifiFilterLiveAccessPoint(WifiAccessPoint accessPoint) {
