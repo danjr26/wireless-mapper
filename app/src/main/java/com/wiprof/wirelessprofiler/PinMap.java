@@ -451,7 +451,12 @@ public class PinMap extends AppCompatActivity
     public void removePin(Pin pin) {
         pins.remove(pin);
         for(WifiAccessPoint accessPoint : pin.getWifiInfo()) {
-            removeWifiFilterPinAccessPoint(wifiFilterListDeadAccessPoints.indexOf(accessPoint));
+            for(int i = 0; i < wifiFilterListDeadAccessPoints.size(); i++) {
+                if(wifiFilterListDeadAccessPoints.get(i).getName() == accessPoint.getName()) {
+                    removeWifiFilterPinAccessPoint(i);
+                    break;
+                }
+            }
         }
         pin.Hide();
     }
