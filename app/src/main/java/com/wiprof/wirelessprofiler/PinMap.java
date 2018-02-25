@@ -270,6 +270,77 @@ public class PinMap extends AppCompatActivity
         locationProvider.requestLocationUpdates(locationRequest, locationCallback, null);
     }
 
+    private boolean isPinImageOverlayOpen() {
+        View pinImageOverlay = findViewById(R.id.PinOverlay);
+        return pinImageOverlay.getVisibility() == View.VISIBLE;
+    }
+
+    private void openPinImageOverlay() {
+        View pinImageOverlay = findViewById(R.id.PinOverlay);
+        pinImageOverlay.setVisibility(View.VISIBLE);
+    }
+
+    private void closePinImageOverlay() {
+        View pinImageOverlay = findViewById(R.id.PinOverlay);
+        pinImageOverlay.setVisibility(View.GONE);
+    }
+
+    private boolean isConfirmNewPinButtonOpen() {
+        View newPinConfirmButton = findViewById(R.id.ConfirmNewPinButton);
+        return newPinConfirmButton.getVisibility() == View.VISIBLE;
+    }
+
+    private void openConfirmNewPinButton() {
+        View newPinConfirmButton = findViewById(R.id.ConfirmNewPinButton);
+        newPinConfirmButton.setVisibility(View.VISIBLE);
+    }
+
+    private void closeConfirmNewPinButton() {
+        View newPinConfirmButton = findViewById(R.id.ConfirmNewPinButton);
+        newPinConfirmButton.setVisibility(View.GONE);
+    }
+
+    private boolean isNewPinOverlayOpen() {
+        if(isPinImageOverlayOpen()) {
+            if(!isConfirmNewPinButtonOpen()) {
+                openConfirmNewPinButton();
+            }
+            return true;
+        } else {
+            if(isConfirmNewPinButtonOpen()) {
+                openPinImageOverlay();
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+
+    private void openNewPinOverlay() {
+        openPinImageOverlay();
+        openConfirmNewPinButton();
+    }
+
+    private void closeNewPinOverlay() {
+        closeConfirmNewPinButton();
+        closePinImageOverlay();
+    }
+
+    private LatLng getPinOverlayLatLng() {
+        return map.getCameraPosition().target;
+    }
+
+    public void onConfirmNewPinButtonClick(View view) {
+        view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+        closeNewPinOverlay();
+
+        Pin pin = new Pin(getPinOverlayLatLng(), wifiAccessPoints, wifiRefresher.lastRefreshTime);
+        addPin(pin);
+
+        Toast toast = Toast.makeText(this, "Pin added", Toast.LENGTH_SHORT);
+        toast.show();
+    }
+
     private void setupInfoBox() {
         ConstraintLayout rootView = findViewById(R.id.PinMapInfoBox);
 
@@ -508,12 +579,10 @@ public class PinMap extends AppCompatActivity
         if(lastLocation == null || wifiRefresher.lastRefreshTime == 0L) {
             return;
         }
-        Pin pin = new Pin(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()),
-                wifiAccessPoints, wifiRefresher.lastRefreshTime);
-        addPin(pin);
 
-        Toast toast = Toast.makeText(this, "Pin added", Toast.LENGTH_SHORT);
-        toast.show();
+        map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()), 20.0f));
+
+        openNewPinOverlay();
     }
 
     public void onRemovePinButtonClick(View view) {

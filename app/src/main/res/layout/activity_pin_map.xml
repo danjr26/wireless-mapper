@@ -126,6 +126,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:clickable="true"
+        android:elevation="6dp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -138,6 +139,7 @@
         android:layout_width="@dimen/pinListWidth"
         android:layout_height="0dp"
         android:background="@color/colorContent"
+        android:elevation="8dp"
         android:orientation="vertical"
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@+id/PinMapBar"
@@ -214,12 +216,44 @@
         android:layout_width="@dimen/pinListWidth"
         android:layout_height="match_parent"
         android:background="@color/colorContent"
+        android:elevation="8dp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
     </android.support.constraint.ConstraintLayout>
+
+    <ImageView
+        android:id="@+id/PinOverlay"
+        android:layout_width="@dimen/pinWidth"
+        android:layout_height="@dimen/doublePinHeight"
+        android:paddingBottom="@dimen/pinHeight"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/map"
+        app:layout_constraintLeft_toLeftOf="@+id/map"
+        app:layout_constraintRight_toRightOf="@+id/map"
+        app:layout_constraintTop_toTopOf="@+id/map"
+        app:srcCompat="@drawable/pin" />
+
+    <TextView
+        android:id="@+id/ConfirmNewPinButton"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_margin="8dp"
+        android:alpha="0.7"
+        android:background="@color/colorContent"
+        android:clickable="true"
+        android:elevation="5dp"
+        android:fontFamily="@font/open_sans_bold"
+        android:onClick="onConfirmNewPinButtonClick"
+        android:padding="8dp"
+        android:text="Confirm Pin Placement"
+        android:textAllCaps="true"
+        android:textColor="@color/colorDefaultText"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/PinMapBar"
+        app:layout_constraintStart_toStartOf="@+id/PinMapBar" />
 
 </android.support.constraint.ConstraintLayout>
 

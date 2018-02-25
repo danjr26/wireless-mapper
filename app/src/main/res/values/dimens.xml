@@ -13,4 +13,9 @@
     <dimen name="pinListElementHeight">80dp</dimen>
     <dimen name="filterListWifiElementHeight">30dp</dimen>
     <dimen name="tabHeight">48dp</dimen>
+    <dimen name="pinWidth">30px</dimen>
+    <dimen name="pinHeight">100px</dimen>
+    <dimen name="doublePinHeight">200px</dimen>
+    <dimen name="addPinConfirmButtonWidth">100dp</dimen>
+    <dimen name="addPinConfirmButtonHeight">40dp</dimen>
 </resources>
