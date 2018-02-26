@@ -59,6 +59,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        openLoadingScreen();
+
         INSTANCE = this;
 
         setTitle(Html.fromHtml(getResources().getString(R.string.app_name)));
@@ -118,6 +120,8 @@ public class MainActivity extends AppCompatActivity {
         tabToContentPairing.put((TextView) findViewById(R.id.BluetoothTab), findViewById(R.id.BluetoothTabContent));
 
         getLayoutInflater().inflate(R.layout.item_wifi_access_point, (ViewGroup)findViewById(R.id.BluetoothTabContent), true);
+
+        closeLoadingScreen();
     }
 
     @Override
@@ -157,6 +161,21 @@ public class MainActivity extends AppCompatActivity {
 
     public int getActiveTabContentId() {
         return activeTabContentId;
+    }
+
+    private boolean isLoadingScreenOpen() {
+        View loadingScreen = findViewById(R.id.LoadingScreen);
+        return loadingScreen.getVisibility() == View.VISIBLE;
+    }
+
+    private void openLoadingScreen() {
+        View loadingScreen = findViewById(R.id.LoadingScreen);
+        loadingScreen.setVisibility(View.VISIBLE);
+    }
+
+    private void closeLoadingScreen() {
+        View loadingScreen = findViewById(R.id.LoadingScreen);
+        loadingScreen.setVisibility(View.GONE);
     }
 
     public void onAccessPointClick(View view) {

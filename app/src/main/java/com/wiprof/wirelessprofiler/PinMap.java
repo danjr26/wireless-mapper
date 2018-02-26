@@ -76,6 +76,8 @@ public class PinMap extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pin_map);
 
+        openLoadingScreen();
+
         gestureDetector = new GestureDetector(this, this);
 
         setupLocationProvider();
@@ -137,6 +139,8 @@ public class PinMap extends AppCompatActivity
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MainActivity.MY_PERMISSIONS_FINE_LOCATION);
         }
         map.setMyLocationEnabled(true);
+
+        closeLoadingScreen();
     }
 
     @Override
@@ -268,6 +272,21 @@ public class PinMap extends AppCompatActivity
         }
 
         locationProvider.requestLocationUpdates(locationRequest, locationCallback, null);
+    }
+
+    private boolean isLoadingScreenOpen() {
+        View loadingScreen = findViewById(R.id.LoadingScreen);
+        return loadingScreen.getVisibility() == View.VISIBLE;
+    }
+
+    private void openLoadingScreen() {
+        View loadingScreen = findViewById(R.id.LoadingScreen);
+        loadingScreen.setVisibility(View.VISIBLE);
+    }
+
+    private void closeLoadingScreen() {
+        View loadingScreen = findViewById(R.id.LoadingScreen);
+        loadingScreen.setVisibility(View.GONE);
     }
 
     private boolean isPinImageOverlayOpen() {
