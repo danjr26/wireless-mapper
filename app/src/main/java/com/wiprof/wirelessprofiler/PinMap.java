@@ -51,6 +51,8 @@ public class PinMap extends AppCompatActivity
     private static PinMap INSTANCE;
 
     private GoogleMap map;
+
+    private PinListEntryAdapter pinListEntryAdapter;
     private ArrayList<Pin> pins;
     private int activePinIndex;
 
@@ -108,6 +110,10 @@ public class PinMap extends AppCompatActivity
 
         loadPins();
 
+        ListView pinList = findViewById(R.id.PinList);
+        pinListEntryAdapter = new PinListEntryAdapter(this, new ArrayList<Pin>());
+        pinList.setAdapter(pinListEntryAdapter);
+
         setupWifiFilterAccessPoints();
 
         activePinIndex = -1;
@@ -138,6 +144,9 @@ public class PinMap extends AppCompatActivity
                 pin.Display(map, filterMode, filter);
             }
         }
+
+        // have to wait until Display() is called b/c only then calculates color
+        pinListEntryAdapter.addAll(pins);
 
         Intent intent = getIntent();
 
@@ -210,7 +219,7 @@ public class PinMap extends AppCompatActivity
 
     @Override
     public boolean onSingleTapUp(MotionEvent motionEvent) {
-        return false;
+        return true;
     }
 
     @Override
@@ -405,6 +414,18 @@ public class PinMap extends AppCompatActivity
         toast.show();
     }
 
+    public void onPinListEntryClick(View view) {
+        view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+        int index = (int)view.getTag();
+        Pin pin = pins.get(index);
+        Marker marker = pin.getMarker();
+
+        closePinList();
+        marker.showInfoWindow();
+        onMarkerClick(marker);
+        map.animateCamera(CameraUpdateFactory.newLatLng(marker.getPosition()));
+    }
+
     private void setupInfoBox() {
         ConstraintLayout rootView = findViewById(R.id.PinMapInfoBox);
 
@@ -506,6 +527,7 @@ public class PinMap extends AppCompatActivity
 
     public void addPin(Pin pin) {
         pins.add(pin);
+        pinListEntryAdapter.add(pin);
         for(WifiAccessPoint accessPoint : pin.getWifiInfo()) {
             addWifiFilterPinAccessPoint(accessPoint);
         }
@@ -516,6 +538,7 @@ public class PinMap extends AppCompatActivity
 
     public void removePin(Pin pin) {
         pins.remove(pin);
+        pinListEntryAdapter.remove(pin);
         for(WifiAccessPoint accessPoint : pin.getWifiInfo()) {
             for(int i = 0; i < wifiFilterListDeadAccessPoints.size(); i++) {
                 if(wifiFilterListDeadAccessPoints.get(i).getName() == accessPoint.getName()) {
@@ -630,6 +653,8 @@ public class PinMap extends AppCompatActivity
     }
 
     public void onWifiFilterListEntryClick(View view) {
+        if(!isFilterListOpen())
+            return;
         view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
         int index = (int)view.getTag();
         WifiAccessPoint accessPoint = wifiFilterListAccessPoints.get(index);
@@ -643,6 +668,9 @@ public class PinMap extends AppCompatActivity
                 pin.Display(map, filterMode, filter);
             }
         }
+
+        pinListEntryAdapter.clear();
+        pinListEntryAdapter.addAll(pins);
 
         closeFilterList();
     }

@@ -44,6 +44,7 @@ public class Pin implements Serializable {
     private long time;
     private ArrayList<WifiAccessPoint> wifiInfo;
     private transient int wifiInfoActiveIndex;
+    private transient int color;
 
     public Pin() {
 
@@ -54,6 +55,7 @@ public class Pin implements Serializable {
         this.wifiInfo = wifiInfo;
         this.time = time;
         this.marker = null;
+        this.color = 0;
         wifiInfoActiveIndex = -1;
     }
 
@@ -171,7 +173,7 @@ public class Pin implements Serializable {
                 break;
         }
 
-        int color = Color.HSVToColor(hsv);//MainActivity.getInstance().getResources().getColor(R.color.colorWifiSignal);
+        color = Color.HSVToColor(hsv);//MainActivity.getInstance().getResources().getColor(R.color.colorWifiSignal);
         Bitmap bitmap = BitmapFactory.decodeResource(MainActivity.getInstance().getResources(), R.drawable.pin);
         Bitmap tintedBitmap = tintBitmap(bitmap, color);
 
@@ -190,7 +192,7 @@ public class Pin implements Serializable {
         marker = null;
     }
 
-    private Bitmap tintBitmap(Bitmap bitmap, int color) {
+    private static Bitmap tintBitmap(Bitmap bitmap, int color) {
         Bitmap newBitmap = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), bitmap.getConfig());
         Canvas canvas = new Canvas(newBitmap);
         Paint paint = new Paint();
@@ -273,5 +275,9 @@ public class Pin implements Serializable {
         for(int i = 0; i < pins.size(); i++) {
             intent.putExtra("pin" + Integer.toString(i), pins.get(i));
         }
+    }
+
+    public int getColor() {
+        return color;
     }
 }

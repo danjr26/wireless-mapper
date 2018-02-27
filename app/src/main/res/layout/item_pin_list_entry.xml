@@ -4,13 +4,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/PinListEntry"
     android:layout_width="match_parent"
-    android:layout_height="@dimen/pinListElementHeight">
+    android:layout_height="@dimen/pinListElementHeight"
+    android:clickable="true"
+    android:onClick="onPinListEntryClick">
 
     <TextView
         android:id="@+id/LatitudeLongitude"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
+        android:fontFamily="@font/open_sans"
         android:text="TextView"
         app:layout_constraintBottom_toTopOf="@+id/Timestamp"
         app:layout_constraintStart_toEndOf="@+id/PinIcon"
@@ -21,6 +24,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
+        android:fontFamily="@font/open_sans"
         android:text="TextView"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@+id/PinIcon"
