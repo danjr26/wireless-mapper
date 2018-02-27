@@ -39,8 +39,8 @@
 
     <ImageView
         android:id="@+id/PinIcon"
-        android:layout_width="27dp"
-        android:layout_height="55dp"
+        android:layout_width="@dimen/pinWidth"
+        android:layout_height="@dimen/pinHeight"
         android:layout_marginBottom="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"

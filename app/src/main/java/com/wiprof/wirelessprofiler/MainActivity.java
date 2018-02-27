@@ -35,6 +35,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
+import static android.content.Intent.FLAG_ACTIVITY_NO_ANIMATION;
+
 public class MainActivity extends AppCompatActivity {
     public static final int MY_PERMISSIONS_FINE_LOCATION = 0;
     private static MainActivity INSTANCE;
@@ -171,11 +173,19 @@ public class MainActivity extends AppCompatActivity {
     private void openLoadingScreen() {
         View loadingScreen = findViewById(R.id.LoadingScreen);
         loadingScreen.setVisibility(View.VISIBLE);
+        loadingScreen.invalidate();
+        loadingScreen.requestLayout();
+        ((View)loadingScreen.getParent()).invalidate();
+        ((View)loadingScreen.getParent()).requestLayout();
     }
 
     private void closeLoadingScreen() {
         View loadingScreen = findViewById(R.id.LoadingScreen);
         loadingScreen.setVisibility(View.GONE);
+        loadingScreen.invalidate();
+        loadingScreen.requestLayout();
+        ((View)loadingScreen.getParent()).invalidate();
+        ((View)loadingScreen.getParent()).requestLayout();
     }
 
     public void onAccessPointClick(View view) {
@@ -218,21 +228,32 @@ public class MainActivity extends AppCompatActivity {
 
     public void onTrackButtonClick(View view) {
         view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
-        int index = (int)((View)view.getParent()).getTag();
-        WifiAccessPoint accessPoint = wifiRefresher.accessPointAdapter.getItem(index);
+        openLoadingScreen();
 
-        Intent mapIntent = new Intent(this, PinMap.class);
-        /*Pin pin = new Pin(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()),
-                new ArrayList<>(accessPoints), wifiRefresher.lastRefreshTime);
-        ArrayList<Pin> pins = new ArrayList<>(1);
-        pins.add(pin);
-        Pin.putAllToIntent(pins, mapIntent);*/
+        final View finalView = view;
 
-        mapIntent.putExtra("filterMode", PinMap.FilterMode.FILTER_WIFI);
-        mapIntent.putExtra("filter", accessPoint.getName());
-        mapIntent.putExtra("lastLatitude", lastLocation.getLatitude());
-        mapIntent.putExtra("lastLongitude", lastLocation.getLongitude());
-        startActivity(mapIntent);
+        Handler handler = new Handler();
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                int index = (int)((View)finalView.getParent()).getTag();
+                WifiAccessPoint accessPoint = wifiRefresher.accessPointAdapter.getItem(index);
+
+                Intent mapIntent = new Intent(getApplicationContext(), PinMap.class);
+                /*Pin pin = new Pin(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()),
+                        new ArrayList<>(accessPoints), wifiRefresher.lastRefreshTime);
+                ArrayList<Pin> pins = new ArrayList<>(1);
+                pins.add(pin);
+                Pin.putAllToIntent(pins, mapIntent);*/
+
+                mapIntent.putExtra("filterMode", PinMap.FilterMode.FILTER_WIFI);
+                mapIntent.putExtra("filter", accessPoint.getName());
+                mapIntent.putExtra("lastLatitude", lastLocation.getLatitude());
+                mapIntent.putExtra("lastLongitude", lastLocation.getLongitude());
+                mapIntent.addFlags(FLAG_ACTIVITY_NO_ANIMATION);
+                startActivity(mapIntent);
+            }
+        });
     }
 
     public void onToMapButtonClick(View view) {

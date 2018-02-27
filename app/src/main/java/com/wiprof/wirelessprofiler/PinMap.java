@@ -13,8 +13,10 @@ import android.support.constraint.ConstraintLayout;
 import android.support.constraint.ConstraintSet;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.telecom.Call;
 import android.view.GestureDetector;
 import android.view.HapticFeedbackConstants;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -39,11 +41,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 public class PinMap extends AppCompatActivity
         implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowCloseListener,
         GestureDetector.OnGestureListener {
+
+    private static PinMap INSTANCE;
 
     private GoogleMap map;
     private ArrayList<Pin> pins;
@@ -75,6 +80,11 @@ public class PinMap extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pin_map);
+
+        INSTANCE = this;
+
+        getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         openLoadingScreen();
 
@@ -144,6 +154,33 @@ public class PinMap extends AppCompatActivity
     }
 
     @Override
+    public void onBackPressed() {
+        openLoadingScreen();
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                PinMap pinMap = PinMap.getInstance();
+                Intent intent = new Intent(pinMap, MainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                startActivity(intent);
+            }
+        }, 2000);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        item.getTitle();
+        switch(item.getItemId()) {
+            case android.R.id.home:
+                onBackPressed();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
     protected void onDestroy() {
         savePins();
         super.onDestroy();
@@ -173,7 +210,7 @@ public class PinMap extends AppCompatActivity
 
     @Override
     public boolean onSingleTapUp(MotionEvent motionEvent) {
-        return true;
+        return false;
     }
 
     @Override
@@ -282,11 +319,19 @@ public class PinMap extends AppCompatActivity
     private void openLoadingScreen() {
         View loadingScreen = findViewById(R.id.LoadingScreen);
         loadingScreen.setVisibility(View.VISIBLE);
+        loadingScreen.invalidate();
+        loadingScreen.requestLayout();
+        ((View)loadingScreen.getParent()).invalidate();
+        ((View)loadingScreen.getParent()).requestLayout();
     }
 
     private void closeLoadingScreen() {
         View loadingScreen = findViewById(R.id.LoadingScreen);
         loadingScreen.setVisibility(View.GONE);
+        loadingScreen.invalidate();
+        loadingScreen.requestLayout();
+        ((View)loadingScreen.getParent()).invalidate();
+        ((View)loadingScreen.getParent()).requestLayout();
     }
 
     private boolean isPinImageOverlayOpen() {
@@ -664,6 +709,10 @@ public class PinMap extends AppCompatActivity
     protected void setFilter(String filter) {
         this.filter = filter;
         ((TextView)findViewById(R.id.TrackingLabel)).setText("Tracking " + filter);
+    }
+
+    public static PinMap getInstance() {
+        return INSTANCE;
     }
 
     private class WifiRefresher implements Runnable {
