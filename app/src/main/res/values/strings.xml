@@ -21,4 +21,8 @@
     <string name="wifi_channel_attribute_info">Channel info</string>
     <string name="wifi_access_point_attribute_info">Name and &lt;b&gt;power&lt;/b&gt; info</string>
     <string name="title_activity_pin_map">Pin Map</string>
+    <string name="no_signal_message">no signal</string>
+    <string name="wifi_strength_dbm_format">%d Dbm</string>
+    <string name="wifi_strength_label_text">Strength</string>
+    <string name="pin_timestamp_label_text">Creation Time</string>
 </resources>

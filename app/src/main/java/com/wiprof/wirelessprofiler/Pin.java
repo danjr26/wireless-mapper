@@ -45,6 +45,7 @@ public class Pin implements Serializable {
     private ArrayList<WifiAccessPoint> wifiInfo;
     private transient int wifiInfoActiveIndex;
     private transient int color;
+    private transient boolean isSelected;
 
     public Pin() {
 
@@ -56,6 +57,7 @@ public class Pin implements Serializable {
         this.time = time;
         this.marker = null;
         this.color = 0;
+        this.isSelected = false;
         wifiInfoActiveIndex = -1;
     }
 
@@ -275,6 +277,18 @@ public class Pin implements Serializable {
         for(int i = 0; i < pins.size(); i++) {
             intent.putExtra("pin" + Integer.toString(i), pins.get(i));
         }
+    }
+
+    public void select() {
+        isSelected = true;
+    }
+
+    public void unselect() {
+        isSelected = false;
+    }
+
+    public boolean isSelected() {
+        return isSelected;
     }
 
     public int getColor() {

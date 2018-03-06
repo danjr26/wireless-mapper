@@ -3,4 +3,5 @@
     <item name="TimestampAttribute" type="id"/>
     <item name="LatitudeAttribute" type="id"/>
     <item name="LongitudeAttribute" type="id"/>
+    <item name="PinTag" type="id"/>
 </resources>

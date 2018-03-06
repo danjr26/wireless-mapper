@@ -81,6 +81,10 @@ public class WifiAccessPoint implements Serializable {
         return dateFormat.format(date);
     }
 
+    public long getTimestamp() {
+        return timestamp;
+    }
+
     public int getIconSize(int maxSize, float zero, float one) {
         float strength = getStrengthZeroOne(zero, one);
         int size = (int)(strength * (float)maxSize);

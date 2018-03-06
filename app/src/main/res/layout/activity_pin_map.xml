@@ -127,12 +127,36 @@
         android:layout_height="0dp"
         android:clickable="true"
         android:elevation="6dp"
+        android:onClick="onMenuBackgroundTinterClick"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@color/colorOverlayDisable" />
+
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/PinListBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/colorTab"
+        android:elevation="8dp"
+        android:visibility="gone"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/ListRemovePinButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:clickable="true"
+            android:onClick="onListRemovePinButtonClick"
+            android:padding="@dimen/pinMapBarButtonPadding"
+            android:tint="@color/colorContent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/remove_pin" />
+    </android.support.constraint.ConstraintLayout>
 
     <LinearLayout
         android:id="@+id/FilterListContainer"
@@ -217,21 +241,81 @@
         android:layout_height="match_parent"
         android:background="@color/colorContent"
         android:elevation="8dp"
-        android:visibility="invisible"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
+        <android.support.constraint.ConstraintLayout
+            android:id="@+id/PinListHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/colorTab">
+
+            <CheckBox
+                android:id="@+id/checkBox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="invisible"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <TextView
+                android:id="@+id/PinListTimestampHeader"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginTop="8dp"
+                android:clickable="true"
+                android:fontFamily="@font/open_sans"
+                android:gravity="center_horizontal"
+                android:onClick="onPinListTimestampHeaderClick"
+                android:text="@string/pin_timestamp_label_text"
+                android:textAlignment="textStart"
+                android:textColor="@color/colorTabText"
+                android:textSize="16sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toEndOf="@+id/PinListStrengthHeader"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/PinListStrengthHeader"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:clickable="true"
+                android:fontFamily="@font/open_sans"
+                android:gravity="center_horizontal"
+                android:onClick="onPinListStrengthHeaderClick"
+                android:text="@string/wifi_strength_label_text"
+                android:textAlignment="textStart"
+                android:textColor="@color/colorTabText"
+                android:textSize="16sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/PinListTimestampHeader"
+                app:layout_constraintStart_toEndOf="@+id/checkBox"
+                app:layout_constraintTop_toTopOf="parent" />
+        </android.support.constraint.ConstraintLayout>
+
         <ListView
             android:id="@+id/PinList"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/PinListHeader" />
     </android.support.constraint.ConstraintLayout>
 
     <ImageView
         android:id="@+id/PinOverlay"
         android:layout_width="@dimen/pinWidth"
         android:layout_height="@dimen/doublePinHeight"
+        android:clickable="false"
         android:paddingBottom="@dimen/pinHeight"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@+id/map"

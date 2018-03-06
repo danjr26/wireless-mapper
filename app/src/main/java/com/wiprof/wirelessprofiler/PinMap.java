@@ -56,6 +56,15 @@ public class PinMap extends AppCompatActivity
     private ArrayList<Pin> pins;
     private int activePinIndex;
 
+    private enum PinListSortMethod {
+        STRENGTH_STRONG_FIRST,
+        STRENGTH_STRONG_LAST,
+        TIMESTAMP_RECENT_FIRST,
+        TIMESTAMP_RECENT_LAST
+    };
+
+    private PinListSortMethod pinListSortMethod;
+
     private FusedLocationProviderClient locationProvider;
     private Location lastLocation;
     private GestureDetector gestureDetector;
@@ -101,8 +110,7 @@ public class PinMap extends AppCompatActivity
         wifiAccessPoints = new ArrayList<>();
         wifiRefresher = new WifiRefresher(5000);
         pins = new ArrayList<>();
-        setFilterMode((FilterMode)intent.getSerializableExtra("filterMode"));
-        setFilter(intent.getStringExtra("filter"));
+        setFilter((FilterMode)intent.getSerializableExtra("filterMode"), intent.getStringExtra("filter"));
 
         ListView filterWifiList = findViewById(R.id.FilterWifiList);
         wifiFilterListEntryAdapter = new WifiFilterListEntryAdapter(this, new ArrayList<WifiAccessPoint>());
@@ -147,6 +155,7 @@ public class PinMap extends AppCompatActivity
 
         // have to wait until Display() is called b/c only then calculates color
         pinListEntryAdapter.addAll(pins);
+        setPinListSortMethod(PinListSortMethod.STRENGTH_STRONG_FIRST);
 
         Intent intent = getIntent();
 
@@ -416,14 +425,22 @@ public class PinMap extends AppCompatActivity
 
     public void onPinListEntryClick(View view) {
         view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
-        int index = (int)view.getTag();
-        Pin pin = pins.get(index);
+        Pin pin = (Pin) view.getTag(R.id.PinTag);
         Marker marker = pin.getMarker();
 
         closePinList();
         marker.showInfoWindow();
         onMarkerClick(marker);
         map.animateCamera(CameraUpdateFactory.newLatLng(marker.getPosition()));
+    }
+
+    public void onPinListEntryCheckBoxClick(View view) {
+        Pin pin = (Pin) ((View) view.getParent()).getTag(R.id.PinTag);
+        if(pin.isSelected()) {
+            pin.unselect();
+        } else {
+            pin.select();
+        }
     }
 
     private void setupInfoBox() {
@@ -482,15 +499,23 @@ public class PinMap extends AppCompatActivity
         closeFilterList();
         View pinListView = findViewById(R.id.PinListContainer);
         View backgroundTinter = findViewById(R.id.MenuBackgroundTinter);
+        View pinMapBar = findViewById(R.id.PinMapBar);
+        View pinListBar = findViewById(R.id.PinListBar);
         pinListView.setVisibility(View.VISIBLE);
         backgroundTinter.setVisibility(View.VISIBLE);
+        pinMapBar.setVisibility(View.GONE);
+        pinListBar.setVisibility(View.VISIBLE);
     }
 
     private void closePinList() {
         View pinListView = findViewById(R.id.PinListContainer);
         ImageView backgroundTinter = findViewById(R.id.MenuBackgroundTinter);
+        View pinMapBar = findViewById(R.id.PinMapBar);
+        View pinListBar = findViewById(R.id.PinListBar);
         pinListView.setVisibility(View.GONE);
         backgroundTinter.setVisibility(View.GONE);
+        pinMapBar.setVisibility(View.VISIBLE);
+        pinListBar.setVisibility(View.GONE);
     }
 
     private boolean isPinListOpen() {
@@ -508,15 +533,19 @@ public class PinMap extends AppCompatActivity
 
         View filterListView = findViewById(R.id.FilterListContainer);
         View backgroundTinter = findViewById(R.id.MenuBackgroundTinter);
+        View pinMapBar = findViewById(R.id.PinMapBar);
         filterListView.setVisibility(View.VISIBLE);
         backgroundTinter.setVisibility(View.VISIBLE);
+        pinMapBar.setVisibility(View.GONE);
     }
 
     private void closeFilterList() {
         View filterListView = findViewById(R.id.FilterListContainer);
         ImageView backgroundTinter = findViewById(R.id.MenuBackgroundTinter);
+        View pinMapBar = findViewById(R.id.PinMapBar);
         filterListView.setVisibility(View.GONE);
         backgroundTinter.setVisibility(View.GONE);
+        pinMapBar.setVisibility(View.VISIBLE);
     }
 
     private boolean isFilterListOpen() {
@@ -528,6 +557,7 @@ public class PinMap extends AppCompatActivity
     public void addPin(Pin pin) {
         pins.add(pin);
         pinListEntryAdapter.add(pin);
+        setPinListSortMethod(pinListSortMethod);
         for(WifiAccessPoint accessPoint : pin.getWifiInfo()) {
             addWifiFilterPinAccessPoint(accessPoint);
         }
@@ -539,6 +569,7 @@ public class PinMap extends AppCompatActivity
     public void removePin(Pin pin) {
         pins.remove(pin);
         pinListEntryAdapter.remove(pin);
+        setPinListSortMethod(pinListSortMethod);
         for(WifiAccessPoint accessPoint : pin.getWifiInfo()) {
             for(int i = 0; i < wifiFilterListDeadAccessPoints.size(); i++) {
                 if(wifiFilterListDeadAccessPoints.get(i).getName() == accessPoint.getName()) {
@@ -659,8 +690,7 @@ public class PinMap extends AppCompatActivity
         int index = (int)view.getTag();
         WifiAccessPoint accessPoint = wifiFilterListAccessPoints.get(index);
 
-        setFilterMode(FilterMode.FILTER_WIFI);
-        setFilter(accessPoint.getName());
+        setFilter(FilterMode.FILTER_WIFI, accessPoint.getName());
 
         for(Pin pin : pins) {
             if(pin != null && pin.isValid()) {
@@ -673,6 +703,98 @@ public class PinMap extends AppCompatActivity
         pinListEntryAdapter.addAll(pins);
 
         closeFilterList();
+    }
+
+    public void onMenuBackgroundTinterClick(View view) {
+        closePinList();
+        closeFilterList();
+        closeInfoBox();
+    }
+
+    private void setPinListSortMethod(PinListSortMethod sortMethod) {
+        this.pinListSortMethod = sortMethod;
+
+        TextView strengthHeader = findViewById(R.id.PinListStrengthHeader);
+        TextView timestampHeader = findViewById(R.id.PinListTimestampHeader);
+
+        switch (sortMethod) {
+            case STRENGTH_STRONG_FIRST:
+            case STRENGTH_STRONG_LAST: {
+                final int multiplier;
+                String arrow;
+                if (sortMethod == PinListSortMethod.STRENGTH_STRONG_FIRST) {
+                    multiplier = 1;
+                    arrow = " ▼";
+                } else {
+                    multiplier = -1;
+                    arrow = " ▲";
+                }
+                strengthHeader.setText(getResources().getText(R.string.wifi_strength_label_text) + arrow);
+                timestampHeader.setText(getResources().getText(R.string.pin_timestamp_label_text));
+                pinListEntryAdapter.sort(new Comparator<Pin>() {
+                    @Override
+                    public int compare(Pin pin1, Pin pin2) {
+                        int result;
+                        WifiAccessPoint accessPoint1 = pin1.getWifiFilterResult(filter);
+                        WifiAccessPoint accessPoint2 = pin2.getWifiFilterResult(filter);
+                        if (accessPoint1 == null) {
+                            if (accessPoint2 == null) {
+                                result = 0;
+                            } else {
+                                result = 1;
+                            }
+                        } else {
+                            if (accessPoint2 == null) {
+                                result = -1;
+                            } else {
+                                result = Integer.compare(accessPoint1.getStrengthDbm(), accessPoint2.getStrengthDbm()) * -1;
+                            }
+                        }
+                        return result * multiplier;
+                    }
+                });
+                break;
+            }
+            case TIMESTAMP_RECENT_FIRST:
+            case TIMESTAMP_RECENT_LAST: {
+                final int multiplier;
+                String arrow;
+                if (sortMethod == PinListSortMethod.TIMESTAMP_RECENT_FIRST) {
+                    multiplier = -1;
+                    arrow = " ▼";
+                } else {
+                    multiplier = 1;
+                    arrow = " ▲";
+                }
+                strengthHeader.setText(getResources().getText(R.string.wifi_strength_label_text));
+                timestampHeader.setText(getResources().getText(R.string.pin_timestamp_label_text) + arrow);
+                pinListEntryAdapter.sort(new Comparator<Pin>() {
+                    @Override
+                    public int compare(Pin pin1, Pin pin2) {
+                        return Long.compare(pin1.getTime(), pin2.getTime()) * multiplier;
+                    }
+                });
+                break;
+            }
+        }
+    }
+
+    public void onPinListStrengthHeaderClick(View view) {
+        view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+        if(pinListSortMethod == PinListSortMethod.STRENGTH_STRONG_FIRST) {
+            setPinListSortMethod(PinListSortMethod.STRENGTH_STRONG_LAST);
+        } else {
+            setPinListSortMethod(PinListSortMethod.STRENGTH_STRONG_FIRST);
+        }
+    }
+
+    public void onPinListTimestampHeaderClick(View view) {
+        view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+        if(pinListSortMethod == PinListSortMethod.TIMESTAMP_RECENT_FIRST) {
+            setPinListSortMethod(PinListSortMethod.TIMESTAMP_RECENT_LAST);
+        } else {
+            setPinListSortMethod(PinListSortMethod.TIMESTAMP_RECENT_FIRST);
+        }
     }
 
     public void onNewPinButtonClick(View view) {
@@ -696,6 +818,17 @@ public class PinMap extends AppCompatActivity
 
         Toast toast = Toast.makeText(this, "Pin removed", Toast.LENGTH_SHORT);
         toast.show();
+    }
+
+    public void onListRemovePinButtonClick(View view) {
+        view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+        for(int i = 0; i < pins.size(); i++) {
+            if(pins.get(i).isSelected()) {
+                pinListEntryAdapter.remove(pins.get(i));
+                pins.remove(i);
+                i--;
+            }
+        }
     }
 
     public void onPinListButtonClick(View view) {
@@ -730,13 +863,18 @@ public class PinMap extends AppCompatActivity
         clearSavedPins();
     }
 
-    protected void setFilterMode(FilterMode filterMode) {
+    protected void setFilter(FilterMode filterMode, String filter) {
         this.filterMode = filterMode;
-    }
-
-    protected void setFilter(String filter) {
         this.filter = filter;
         ((TextView)findViewById(R.id.TrackingLabel)).setText("Tracking " + filter);
+    }
+
+    protected String getFilter() {
+        return this.filter;
+    }
+
+    protected FilterMode getFilterMode() {
+        return this.filterMode;
     }
 
     public static PinMap getInstance() {
