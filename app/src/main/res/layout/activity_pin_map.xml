@@ -65,7 +65,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@+id/AddPinButton"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/remove_pin" />
+            app:srcCompat="@drawable/trash" />
 
         <ImageView
             android:id="@+id/AddPinButton"
@@ -76,12 +76,12 @@
             android:clickable="true"
             android:cropToPadding="true"
             android:onClick="onNewPinButtonClick"
-            android:padding="@dimen/pinMapBarButtonPadding"
+            android:padding="6dp"
             android:tint="@color/colorContent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/add_pin" />
+            app:srcCompat="@drawable/add" />
 
         <ImageView
             android:id="@+id/ThreeButtonMenu"
