@@ -2,6 +2,7 @@ package com.wiprof.wirelessprofiler;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -12,6 +13,7 @@ import android.os.Handler;
 import android.support.constraint.ConstraintLayout;
 import android.support.constraint.ConstraintSet;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.telecom.Call;
 import android.view.GestureDetector;
@@ -41,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
@@ -86,6 +89,8 @@ public class PinMap extends AppCompatActivity
     private ArrayList<WifiAccessPoint> wifiFilterListLiveAccessPoints;
     private ArrayList<WifiAccessPoint> wifiFilterListDeadAccessPoints;
     private ArrayList<WifiAccessPoint> wifiFilterListAccessPoints;
+
+    private boolean hasPinVisibilityChanged;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -382,30 +387,50 @@ public class PinMap extends AppCompatActivity
         newPinConfirmButton.setVisibility(View.GONE);
     }
 
+    private void openCancelNewPinButton() {
+        View newPinCancelButton = findViewById(R.id.CancelNewPinButton);
+        newPinCancelButton.setVisibility(View.VISIBLE);
+    }
+
+    private void closeCancelNewPinButton() {
+        View newPinCancelButton = findViewById(R.id.CancelNewPinButton);
+        newPinCancelButton.setVisibility(View.GONE);
+    }
+
+    private boolean isCancelNewPinButtonOpen() {
+        View newPinCancelButton = findViewById(R.id.CancelNewPinButton);
+        return newPinCancelButton.getVisibility() == View.VISIBLE;
+    }
+
     private boolean isNewPinOverlayOpen() {
-        if(isPinImageOverlayOpen()) {
-            if(!isConfirmNewPinButtonOpen()) {
-                openConfirmNewPinButton();
-            }
-            return true;
-        } else {
-            if(isConfirmNewPinButtonOpen()) {
-                openPinImageOverlay();
-                return true;
-            } else {
-                return false;
-            }
-        }
+        return isPinImageOverlayOpen();
     }
 
     private void openNewPinOverlay() {
         openPinImageOverlay();
         openConfirmNewPinButton();
+        openCancelNewPinButton();
     }
 
     private void closeNewPinOverlay() {
         closeConfirmNewPinButton();
         closePinImageOverlay();
+        closeCancelNewPinButton();
+    }
+
+    private void openThreeDotsMenu() {
+        View threeDotsMenu = findViewById(R.id.ThreeDotsMenu);
+        threeDotsMenu.setVisibility(View.VISIBLE);
+    }
+
+    private void closeThreeDotsMenu() {
+        View threeDotsMenu = findViewById(R.id.ThreeDotsMenu);
+        threeDotsMenu.setVisibility(View.GONE);
+    }
+
+    private boolean isThreeDotsMenuOpen() {
+        View threeDotsMenu = findViewById(R.id.ThreeDotsMenu);
+        return threeDotsMenu.getVisibility() == View.VISIBLE;
     }
 
     private LatLng getPinOverlayLatLng() {
@@ -423,25 +448,49 @@ public class PinMap extends AppCompatActivity
         toast.show();
     }
 
+    public void onCancelNewPinButtonClick(View view) {
+        view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+        closeNewPinOverlay();
+    }
+
     public void onPinListEntryClick(View view) {
         view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
         Pin pin = (Pin) view.getTag(R.id.PinTag);
+
+        if(!pin.isSelected()) {
+            return;
+        }
+
         Marker marker = pin.getMarker();
 
         closePinList();
         marker.showInfoWindow();
         onMarkerClick(marker);
-        map.animateCamera(CameraUpdateFactory.newLatLng(marker.getPosition()));
+        map.animateCamera(CameraUpdateFactory.newLatLng(pin.getLocation()));
     }
 
     public void onPinListEntryCheckBoxClick(View view) {
         Pin pin = (Pin) ((View) view.getParent()).getTag(R.id.PinTag);
+        String toastText;
         if(pin.isSelected()) {
             pin.unselect();
+            toastText = "Pin made invisible";
         } else {
             pin.select();
+            toastText = "Pin made visible";
         }
+        final Toast toast = Toast.makeText(this, toastText, Toast.LENGTH_SHORT);
+        toast.show();
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                toast.cancel();
+            }
+        }, 200);
     }
+
+
 
     private void setupInfoBox() {
         ConstraintLayout rootView = findViewById(R.id.PinMapInfoBox);
@@ -500,22 +549,18 @@ public class PinMap extends AppCompatActivity
         View pinListView = findViewById(R.id.PinListContainer);
         View backgroundTinter = findViewById(R.id.MenuBackgroundTinter);
         View pinMapBar = findViewById(R.id.PinMapBar);
-        View pinListBar = findViewById(R.id.PinListBar);
         pinListView.setVisibility(View.VISIBLE);
         backgroundTinter.setVisibility(View.VISIBLE);
         pinMapBar.setVisibility(View.GONE);
-        pinListBar.setVisibility(View.VISIBLE);
     }
 
     private void closePinList() {
         View pinListView = findViewById(R.id.PinListContainer);
         ImageView backgroundTinter = findViewById(R.id.MenuBackgroundTinter);
         View pinMapBar = findViewById(R.id.PinMapBar);
-        View pinListBar = findViewById(R.id.PinListBar);
         pinListView.setVisibility(View.GONE);
         backgroundTinter.setVisibility(View.GONE);
         pinMapBar.setVisibility(View.VISIBLE);
-        pinListBar.setVisibility(View.GONE);
     }
 
     private boolean isPinListOpen() {
@@ -816,7 +861,7 @@ public class PinMap extends AppCompatActivity
         removePin(pins.get(activePinIndex));
         activePinIndex = -1;
 
-        Toast toast = Toast.makeText(this, "Pin removed", Toast.LENGTH_SHORT);
+        Toast toast = Toast.makeText(this, "Pin deleted", Toast.LENGTH_SHORT);
         toast.show();
     }
 
@@ -834,11 +879,88 @@ public class PinMap extends AppCompatActivity
     public void onPinListButtonClick(View view) {
         view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
         openPinList();
+        setPinListSortMethod(pinListSortMethod);
     }
 
     public void onFilterListButtonClick(View view) {
         view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
         openFilterList();
+    }
+
+    public void onThreeDotsMenuButtonClick(View view) {
+        view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+        if(isThreeDotsMenuOpen()) {
+            closeThreeDotsMenu();
+        } else {
+            openThreeDotsMenu();
+        }
+    }
+
+    public void onDeleteVisibleButtonClick(View view) {
+        view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+        closeThreeDotsMenu();
+
+        new AlertDialog.Builder(this)
+                .setTitle("Confirmation")
+                .setMessage("Do you really want to delete all visible pins?")
+                .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int index) {
+                        int count = 0;
+                        for(int i = 0; i < pins.size(); i++) {
+                            if(pins.get(i).isSelected()) {
+                                pinListEntryAdapter.remove(pins.get(i));
+                                pins.get(i).Hide();
+                                pins.remove(i);
+                                count++;
+                                i--;
+                            }
+                        }
+                        savePins();
+
+                        Toast toast = Toast.makeText(
+                                PinMap.getInstance(),
+                                (count == 1) ? "1 pin removed" : String.format(Locale.US, "%d pins removed", count),
+                                Toast.LENGTH_SHORT
+                        );
+                        toast.show();
+                    }
+                })
+                .setNegativeButton("NO", null)
+                .show();
+    }
+
+    public void onDeleteInvisibleButtonClick(View view) {
+        view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+        closeThreeDotsMenu();
+
+        new AlertDialog.Builder(this)
+                .setTitle("Confirmation")
+                .setMessage("Do you really want to delete all invisible pins?")
+                .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int index) {
+                        int count = 0;
+                        for(int i = 0; i < pins.size(); i++) {
+                            if(!pins.get(i).isSelected()) {
+                                pinListEntryAdapter.remove(pins.get(i));
+                                pins.remove(i);
+                                count++;
+                                i--;
+                            }
+                        }
+                        savePins();
+
+                        Toast toast = Toast.makeText(
+                                PinMap.getInstance(),
+                                (count == 1) ? "1 pin removed" : String.format(Locale.US, "%d pins removed", count),
+                                Toast.LENGTH_SHORT
+                        );
+                        toast.show();
+                    }
+                })
+                .setNegativeButton("NO", null)
+                .show();
     }
 
     protected void savePins() {
@@ -861,6 +983,10 @@ public class PinMap extends AppCompatActivity
     protected void clearAllPins() {
         clearLoadedPins();
         clearSavedPins();
+    }
+
+    protected GoogleMap getMap() {
+        return map;
     }
 
     protected void setFilter(FilterMode filterMode, String filter) {

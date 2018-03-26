@@ -84,13 +84,14 @@
             app:srcCompat="@drawable/add" />
 
         <ImageView
-            android:id="@+id/ThreeButtonMenu"
+            android:id="@+id/ThreeDotsMenuButton"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
             android:layout_marginEnd="@dimen/pinMapBarButtonSpacing"
             android:layout_weight="1"
             android:adjustViewBounds="true"
             android:clickable="true"
+            android:onClick="onThreeDotsMenuButtonClick"
             android:padding="@dimen/pinMapBarButtonPadding"
             android:tint="@color/colorContent"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -134,29 +135,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@color/colorOverlayDisable" />
-
-    <android.support.constraint.ConstraintLayout
-        android:id="@+id/PinListBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@color/colorTab"
-        android:elevation="8dp"
-        android:visibility="gone"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <ImageView
-            android:id="@+id/ListRemovePinButton"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:clickable="true"
-            android:onClick="onListRemovePinButtonClick"
-            android:padding="@dimen/pinMapBarButtonPadding"
-            android:tint="@color/colorContent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/remove_pin" />
-    </android.support.constraint.ConstraintLayout>
 
     <LinearLayout
         android:id="@+id/FilterListContainer"
@@ -253,11 +231,12 @@
             android:background="@color/colorTab">
 
             <CheckBox
-                android:id="@+id/checkBox"
+                android:id="@+id/CheckBox"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="1dp"
                 android:visibility="invisible"
-                app:layout_constraintStart_toStartOf="parent" />
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/PinListStrengthHeader" />
 
             <TextView
                 android:id="@+id/PinListTimestampHeader"
@@ -297,7 +276,7 @@
                 android:textSize="16sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/PinListTimestampHeader"
-                app:layout_constraintStart_toEndOf="@+id/checkBox"
+                app:layout_constraintStart_toEndOf="@+id/CheckBox"
                 app:layout_constraintTop_toTopOf="parent" />
         </android.support.constraint.ConstraintLayout>
 
@@ -342,6 +321,60 @@
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@+id/PinMapBar"
         app:layout_constraintStart_toStartOf="@+id/PinMapBar" />
+
+    <TextView
+        android:id="@+id/CancelNewPinButton"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_margin="8dp"
+        android:layout_marginEnd="8dp"
+        android:alpha="0.7"
+        android:background="@color/colorContent"
+        android:clickable="true"
+        android:elevation="5dp"
+        android:fontFamily="@font/open_sans_bold"
+        android:onClick="onCancelNewPinButtonClick"
+        android:padding="8dp"
+        android:text="Cancel"
+        android:textAllCaps="true"
+        android:textColor="@color/colorDefaultText"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/PinMapBar"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/ThreeDotsMenu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/colorContent"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/PinMapBar"
+        app:layout_constraintRight_toRightOf="@+id/PinMapBar">
+
+        <TextView
+            android:id="@+id/DeleteVisibleButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:fontFamily="@font/open_sans"
+            android:onClick="onDeleteVisibleButtonClick"
+            android:padding="8dp"
+            android:text="Delete all visible"
+            android:textColor="@color/colorDefaultText" />
+
+        <TextView
+            android:id="@+id/DeleteInvisibleButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:fontFamily="@font/open_sans"
+            android:onClick="onDeleteInvisibleButtonClick"
+            android:padding="8dp"
+            android:text="Delete all invisible"
+            android:textColor="@color/colorDefaultText" />
+
+    </LinearLayout>
 
     <android.support.constraint.ConstraintLayout
         android:id="@+id/LoadingScreen"

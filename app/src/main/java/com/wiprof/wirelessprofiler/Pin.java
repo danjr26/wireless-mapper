@@ -11,6 +11,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
+import android.util.Log;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptor;
@@ -45,20 +46,22 @@ public class Pin implements Serializable {
     private ArrayList<WifiAccessPoint> wifiInfo;
     private transient int wifiInfoActiveIndex;
     private transient int color;
-    private transient boolean isSelected;
+    private boolean isSelected;
 
-    public Pin() {
-
-    }
+    private transient String cachedWifiFilter;
+    private transient WifiAccessPoint cachedWifiAccessPoint;
 
     public Pin(LatLng location, ArrayList<WifiAccessPoint> wifiInfo, long time) {
         this.location = location;
-        this.wifiInfo = wifiInfo;
+        this.wifiInfo = new ArrayList<>(wifiInfo);
         this.time = time;
         this.marker = null;
         this.color = 0;
-        this.isSelected = false;
+        this.isSelected = true;
         wifiInfoActiveIndex = -1;
+
+        this.cachedWifiFilter = "";
+        this.cachedWifiAccessPoint = null;
     }
 
 
@@ -127,9 +130,14 @@ public class Pin implements Serializable {
     }
 
     public WifiAccessPoint getWifiFilterResult(String filter) {
+        if(cachedWifiFilter.equals(filter)) {
+            return cachedWifiAccessPoint;
+        }
         for(int i = 0; i < wifiInfo.size(); i++) {
             WifiAccessPoint accessPoint = wifiInfo.get(i);
             if(accessPoint != null && accessPoint.getName().equals(filter)) {
+                cachedWifiFilter = filter;
+                cachedWifiAccessPoint = accessPoint;
                return accessPoint;
             }
         }
@@ -142,13 +150,17 @@ public class Pin implements Serializable {
     }
 
     public void Display(GoogleMap map, PinMap.FilterMode filterMode, String filter) {
+        if(!isSelected) {
+            return;
+        }
+
         if(marker != null) {
             marker.remove();
         }
 
         float alpha = 1.0f;
         float hsv[] = new float[] {0.0f, 0.0f, 0.5f};
-        String title = "N/A";
+        String title = PinMap.getInstance().getResources().getString(R.string.no_signal_message);
         String snippet = getAgoTimestamp();
 
         switch(filterMode) {
@@ -213,6 +225,7 @@ public class Pin implements Serializable {
     private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
         inputStream.defaultReadObject();
         location = new LatLng(inputStream.readDouble(), inputStream.readDouble());
+        cachedWifiFilter = "";
     }
 
     public static void putAllToFile(ArrayList<Pin> pins, Context context) {
@@ -246,7 +259,7 @@ public class Pin implements Serializable {
             objectStream.close();
             fileStream.close();
         } catch(FileNotFoundException e) {
-
+            e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -281,10 +294,16 @@ public class Pin implements Serializable {
 
     public void select() {
         isSelected = true;
+        PinMap pinMap = PinMap.getInstance();
+        Display(pinMap.getMap(), pinMap.getFilterMode(), pinMap.getFilter());
     }
 
     public void unselect() {
         isSelected = false;
+        if(marker != null) {
+            marker.remove();
+        }
+        marker = null;
     }
 
     public boolean isSelected() {

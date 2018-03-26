@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -62,6 +63,7 @@ public class PinListEntryAdapter extends ArrayAdapter<Pin> {
         ((ImageView)convertView.findViewById(R.id.PinIcon)).setColorFilter(pin.getColor(), PorterDuff.Mode.MULTIPLY);
         ((TextView)convertView.findViewById(R.id.CurrentFilterStrength)).setText(currentFilterStrength);
         ((TextView)convertView.findViewById(R.id.Timestamp)).setText(pin.getAgoTimestamp());
+        ((CheckBox)convertView.findViewById(R.id.CheckBox)).setChecked(pin.isSelected());
 
         convertView.setTag(R.id.PinTag, pin);
 
