@@ -53,7 +53,7 @@ public class WifiAccessPoint implements Serializable {
         if(name == null || name.isEmpty()) {
             name = MainActivity.getInstance().getResources().getString(R.string.wifi_empty_name);
         }
-        name = MainActivity.getInstance().tagSSID(name, BSSID);
+        name = MainActivity.getInstance().tagWifiAccessPointName(name, BSSID);
         return name;
     }
 

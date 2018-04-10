@@ -5,6 +5,8 @@
     <string name="wifi_empty_name">[unnamed]</string>
     <string name="wifi_byte_to_ssid_pref_key">com.wiprof.wirelessprofiler.wifi_byte_to_ssid</string>
     <string name="wifi_ssid_to_index_pref_key">com.wiprof.wirelessprofiler.wifi_ssid_to_index</string>
+    <string name="cellular_id_to_name_pref_key">com.wiprof.wirelessprofiler.cellular_id_to_name</string>
+    <string name="cellular_type_to_index_pref_key">com.wiprof.wirelessprofiler.cellular_type_to_name</string>
     <string name="map_marker_pref_key">com.wiprof.wirelessprofiler.map_marker_pref_key</string>
     <string name="wifi_info_activity_title">WiFi Info</string>
     <string name="wifi_info_box_default_text">Tap on anything above to learn more.</string>

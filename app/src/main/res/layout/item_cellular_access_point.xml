@@ -2,37 +2,34 @@
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/WifiAccessPoint"
+    android:id="@+id/CellularAccessPoint"
     android:layout_width="match_parent"
-    android:layout_height="@dimen/wifiAccessPointHeight"
-    android:animateLayoutChanges="true"
+    android:layout_height="@dimen/cellularAccessPointHeight"
     android:clickable="true"
-    android:hapticFeedbackEnabled="true"
     android:onClick="onAccessPointClick"
     android:padding="8dp">
 
-
     <ImageView
-        android:id="@+id/WifiIconBackground"
+        android:id="@+id/CellularIconBackground"
         android:layout_width="wrap_content"
-        android:layout_height="@dimen/wifiIconMaxHeight"
+        android:layout_height="@dimen/cellularIconMaxHeight"
         android:adjustViewBounds="true"
         android:tint="@color/colorWifiSignalBackground"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/wifi_icon" />
+        app:srcCompat="@drawable/cellular_icon" />
 
     <ImageView
-        android:id="@+id/WifiIcon"
-        android:layout_width="0dp"
-        android:layout_height="@dimen/wifiIconMaxHeight"
+        android:id="@+id/CellularIcon"
+        android:layout_width="20dp"
+        android:layout_height="wrap_content"
         android:adjustViewBounds="true"
+        android:clickable="false"
         android:tint="@color/colorWifiSignal"
         android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="@+id/WifiIconBackground"
-        app:layout_constraintEnd_toEndOf="@+id/WifiIconBackground"
-        app:layout_constraintStart_toStartOf="@+id/WifiIconBackground"
-        app:srcCompat="@drawable/wifi_icon" />
+        app:layout_constraintBottom_toBottomOf="@+id/CellularIconBackground"
+        app:layout_constraintLeft_toLeftOf="@+id/WifiIconBackground"
+        app:srcCompat="@drawable/cellular_icon" />
 
     <Button
         android:id="@+id/InfoButton"
@@ -62,7 +59,7 @@
         android:fontFamily="@font/open_sans_semibold"
         android:maxWidth="180dp"
         android:text="TextView"
-        app:layout_constraintStart_toEndOf="@+id/WifiIconBackground"
+        app:layout_constraintStart_toEndOf="@id/CellularIconBackground"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
@@ -100,6 +97,4 @@
         app:layout_constraintBaseline_toBaselineOf="@+id/InfoButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/InfoButton" />
-
-
 </android.support.constraint.ConstraintLayout>

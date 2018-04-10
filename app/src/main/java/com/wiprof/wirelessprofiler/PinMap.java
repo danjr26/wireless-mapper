@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
@@ -16,6 +18,8 @@ import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.telecom.Call;
+import android.telephony.CellInfo;
+import android.telephony.TelephonyManager;
 import android.view.GestureDetector;
 import android.view.HapticFeedbackConstants;
 import android.view.MenuItem;
@@ -36,8 +40,10 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -82,8 +88,11 @@ public class PinMap extends AppCompatActivity
     private String filter;
 
     public WifiRefresher wifiRefresher;
+    public CellularRefresher cellularRefresher;
     public PinSnippetRefresher pinSnippetRefresher;
+
     private ArrayList<WifiAccessPoint> wifiAccessPoints;
+    private ArrayList<CellularAccessPoint> cellularAccessPoints;
 
     private WifiFilterListEntryAdapter wifiFilterListEntryAdapter;
     private ArrayList<WifiAccessPoint> wifiFilterListLiveAccessPoints;
@@ -91,6 +100,9 @@ public class PinMap extends AppCompatActivity
     private ArrayList<WifiAccessPoint> wifiFilterListAccessPoints;
 
     private boolean hasPinVisibilityChanged;
+
+    private Marker cellTowerMarker;
+    private Handler cellTowerMarkerShowHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,7 +125,9 @@ public class PinMap extends AppCompatActivity
 
         pinSnippetRefresher = new PinSnippetRefresher((int)TimeUnit.MINUTES.toMillis(1));
         wifiAccessPoints = new ArrayList<>();
+        cellularAccessPoints = new ArrayList<>();
         wifiRefresher = new WifiRefresher(5000);
+        cellularRefresher = new CellularRefresher(this, 5000);
         pins = new ArrayList<>();
         setFilter((FilterMode)intent.getSerializableExtra("filterMode"), intent.getStringExtra("filter"));
 
@@ -130,6 +144,9 @@ public class PinMap extends AppCompatActivity
         setupWifiFilterAccessPoints();
 
         activePinIndex = -1;
+
+        cellTowerMarker = null;
+        cellTowerMarkerShowHandler = null;
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -162,11 +179,24 @@ public class PinMap extends AppCompatActivity
         pinListEntryAdapter.addAll(pins);
         setPinListSortMethod(PinListSortMethod.STRENGTH_STRONG_FIRST);
 
+        cellTowerMarkerShowHandler = new Handler();
+        if(filterMode == FilterMode.FILTER_CELLULAR) {
+            cellTowerMarkerShowHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    showCellTowerMarker();
+                    if (cellTowerMarker == null) {
+                        cellTowerMarkerShowHandler.postDelayed(this, 1000);
+                    }
+                }
+            });
+        }
+
         Intent intent = getIntent();
 
         LatLng location = new LatLng(intent.getDoubleExtra("lastLatitude", 0.0), intent.getDoubleExtra("lastLongitude", 0.0));
 
-        map.animateCamera(CameraUpdateFactory.newLatLngZoom(location, 18));
+        map.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 18));
 
         if(Build.VERSION.SDK_INT >= 23 && checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MainActivity.MY_PERMISSIONS_FINE_LOCATION);
@@ -268,7 +298,7 @@ public class PinMap extends AppCompatActivity
         Pin pin = pins.get(activePinIndex);
         switch (filterMode) {
             case FILTER_WIFI:
-                ConstraintLayout accessPointView = findViewById(R.id.AccessPoint);
+                ConstraintLayout accessPointView = findViewById(R.id.WifiAccessPoint);
                 ConstraintLayout latitudeAttributeView = findViewById(R.id.LatitudeAttribute);
                 ConstraintLayout longitudeAttributeView = findViewById(R.id.LongitudeAttribute);
                 ConstraintLayout timestampAttributeView = findViewById(R.id.TimestampAttribute);
@@ -303,7 +333,7 @@ public class PinMap extends AppCompatActivity
 
     public int getPinIndexFromMarker(Marker marker) {
         for(int i = 0; i < pins.size(); i++) {
-            if(pins.get(i).getMarker().equals(marker)) {
+            if(pins.get(i).getMarker() != null && pins.get(i).getMarker().equals(marker)) {
                 return i;
             }
         }
@@ -332,6 +362,37 @@ public class PinMap extends AppCompatActivity
         }
 
         locationProvider.requestLocationUpdates(locationRequest, locationCallback, null);
+    }
+
+    private void showCellTowerMarker() {
+        CellularAccessPoint accessPoint = null;
+        for (CellularAccessPoint thisAccessPoint : cellularAccessPoints) {
+            if(thisAccessPoint.isRegistered()) {
+                accessPoint = thisAccessPoint;
+                break;
+            }
+        }
+
+        if(accessPoint == null || !accessPoint.isLocationValid()) {
+            return;
+        }
+
+        Bitmap bitmap = BitmapFactory.decodeResource(MainActivity.getInstance().getResources(), R.drawable.cell_tower);
+
+        cellTowerMarker = map.addMarker(
+                new MarkerOptions()
+                        .position(accessPoint.getLocation())
+                        .icon(BitmapDescriptorFactory.fromBitmap(Bitmap.createScaledBitmap(bitmap, 100, 100, false)))
+        );
+    }
+
+    private void hideCellTowerMarker() {
+        if(cellTowerMarker == null) {
+            return;
+        }
+
+        cellTowerMarker.remove();
+        cellTowerMarker = null;
     }
 
     private boolean isLoadingScreenOpen() {
@@ -441,7 +502,7 @@ public class PinMap extends AppCompatActivity
         view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
         closeNewPinOverlay();
 
-        Pin pin = new Pin(getPinOverlayLatLng(), wifiAccessPoints, wifiRefresher.lastRefreshTime);
+        Pin pin = new Pin(getPinOverlayLatLng(), wifiAccessPoints, cellularAccessPoints, wifiRefresher.lastRefreshTime);
         addPin(pin);
 
         Toast toast = Toast.makeText(this, "Pin added", Toast.LENGTH_SHORT);
@@ -1032,6 +1093,37 @@ public class PinMap extends AppCompatActivity
             }
 
             wifiManager.startScan();
+            handler.postDelayed(this, delay);
+        }
+    }
+
+    private class CellularRefresher implements Runnable {
+        private int delay;
+        private Handler handler;
+        private boolean isPaused;
+        PinMap activity;
+
+        private CellularRefresher(PinMap activity, int delay) {
+            this.delay = delay;
+            this.handler = new Handler();
+            handler.post(this);
+            this.isPaused = false;
+            this.activity = activity;
+        }
+
+        @Override
+        public void run() {
+            if (Build.VERSION.SDK_INT >= 23 && checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.READ_PHONE_STATE}, MainActivity.MY_PERMISSIONS_READ_PHONE_STATE);
+            }
+            TelephonyManager cellularManager = (TelephonyManager) activity.getSystemService(Context.TELEPHONY_SERVICE);
+            List<CellInfo> cellularInfos = cellularManager.getAllCellInfo();
+
+            activity.cellularAccessPoints.clear();
+            for(CellInfo cellularInfo : cellularInfos) {
+                activity.cellularAccessPoints.add(new CellularAccessPoint(activity, cellularInfo));
+            }
+
             handler.postDelayed(this, delay);
         }
     }

@@ -80,7 +80,7 @@ public class WifiInfoActivity extends AppCompatActivity {
         AttributeEntry attributeEntry = attributeEntryAdapter.getItem(index);
         ((TextView)findViewById(R.id.InfoBox)).setText(Html.fromHtml(attributeEntry.infoText));
 
-        findViewById(R.id.AccessPoint).setBackgroundColor(getResources().getColor(R.color.colorContent));
+        findViewById(R.id.WifiAccessPoint).setBackgroundColor(getResources().getColor(R.color.colorContent));
         for(int i = 0; i < parent.getChildCount(); i++) {
             if(i == index) {
                 view.setBackgroundColor(getResources().getColor(R.color.colorContentSelected));

@@ -11,6 +11,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
+import android.telephony.CellInfo;
 import android.util.Log;
 
 import com.google.android.gms.maps.GoogleMap;
@@ -44,24 +45,28 @@ public class Pin implements Serializable {
     private transient LatLng location;
     private long time;
     private ArrayList<WifiAccessPoint> wifiInfo;
-    private transient int wifiInfoActiveIndex;
+    private ArrayList<CellularAccessPoint> cellularInfo;
     private transient int color;
     private boolean isSelected;
 
     private transient String cachedWifiFilter;
     private transient WifiAccessPoint cachedWifiAccessPoint;
 
-    public Pin(LatLng location, ArrayList<WifiAccessPoint> wifiInfo, long time) {
+    private transient String cachedCellularFilter;
+    private transient CellularAccessPoint cachedCellularAccessPoint;
+
+    public Pin(LatLng location, ArrayList<WifiAccessPoint> wifiInfo, ArrayList<CellularAccessPoint> cellularInfo, long time) {
         this.location = location;
         this.wifiInfo = new ArrayList<>(wifiInfo);
+        this.cellularInfo = new ArrayList<>(cellularInfo);
         this.time = time;
         this.marker = null;
         this.color = 0;
         this.isSelected = true;
-        wifiInfoActiveIndex = -1;
-
         this.cachedWifiFilter = "";
         this.cachedWifiAccessPoint = null;
+        this.cachedCellularFilter = "";
+        this.cachedCellularAccessPoint = null;
     }
 
 
@@ -129,6 +134,8 @@ public class Pin implements Serializable {
         return wifiInfo;
     }
 
+    public ArrayList<CellularAccessPoint> getCellularInfo() {return cellularInfo;}
+
     public WifiAccessPoint getWifiFilterResult(String filter) {
         if(cachedWifiFilter.equals(filter)) {
             return cachedWifiAccessPoint;
@@ -144,8 +151,23 @@ public class Pin implements Serializable {
         return null;
     }
 
+    public CellularAccessPoint getCellularFilterResult(String filter) {
+        if (cachedCellularFilter.equals(filter)) {
+            return cachedCellularAccessPoint;
+        }
+        for (int i = 0; i < cellularInfo.size(); i++) {
+            CellularAccessPoint accessPoint = cellularInfo.get(i);
+            if (accessPoint != null && accessPoint.getName().equals(filter)) {
+                cachedCellularFilter = filter;
+                cachedCellularAccessPoint = accessPoint;
+                return accessPoint;
+            }
+        }
+        return null;
+    }
+
     public boolean isValid() {
-        return !(location == null || wifiInfo == null || location.latitude < -90.0 ||
+        return !(location == null || wifiInfo == null || cellularInfo == null || location.latitude < -90.0 ||
                 location.latitude > 90.0 || location.longitude < -180.0 || location.latitude > 180.0);
     }
 
@@ -164,27 +186,42 @@ public class Pin implements Serializable {
         String snippet = getAgoTimestamp();
 
         switch(filterMode) {
-            case FILTER_WIFI:
-                for(int i = 0; i < wifiInfo.size(); i++) {
-                    WifiAccessPoint accessPoint = wifiInfo.get(i);
-                    if(accessPoint != null && accessPoint.getName().equals(filter)) {
-                        wifiInfoActiveIndex = i;
-                        title = Integer.toString(accessPoint.getStrengthDbm()) + " Dbm";
-
-                        int strength = accessPoint.getStrengthDbm();
-                        if(strength < -80) strength = -80;
-                        if(strength > -40) strength = -40;
-                        alpha = 1.0f;
-                        hsv[0] = 240 + ((strength + 40) * 6);
-                        hsv[1] = 1.0f;
-                        hsv[2] = 1.0f;
-                        break;
-                    }
+            case FILTER_WIFI: {
+                WifiAccessPoint accessPoint = getWifiFilterResult(filter);
+                if(accessPoint == null) {
+                    return;
                 }
+                title = Integer.toString(accessPoint.getStrengthDbm()) + " Dbm";
+
+                int strength = accessPoint.getStrengthDbm();
+                if (strength < -80) strength = -80;
+                if (strength > -40) strength = -40;
+                alpha = 1.0f;
+                hsv[0] = 200 + ((strength + 40) * 200 / 40);
+                hsv[1] = 1.0f;
+                hsv[2] = 1.0f;
                 break;
-            case FILTER_BLUETOOTH:
+            }
+            case FILTER_CELLULAR: {
+                CellularAccessPoint accessPoint = getCellularFilterResult(filter);
+                if(accessPoint == null) {
+                    return;
+                }
+                title = Integer.toString(accessPoint.getStrengthDbm()) + " Dbm";
+
+                int strength = accessPoint.getStrengthDbm();
+                if (strength < -120) strength = -120;
+                if (strength > -60) strength = -60;
+                alpha = 1.0f;
+                hsv[0] = 200 + ((strength + 60) * 200 / 60);
+                hsv[1] = 1.0f;
+                hsv[2] = 1.0f;
+                break;
+            }
+            case FILTER_BLUETOOTH: {
 
                 break;
+            }
         }
 
         color = Color.HSVToColor(hsv);//MainActivity.getInstance().getResources().getColor(R.color.colorWifiSignal);
@@ -202,7 +239,9 @@ public class Pin implements Serializable {
     }
 
     public void Hide() {
-        marker.remove();
+        if(marker != null) {
+            marker.remove();
+        }
         marker = null;
     }
 
@@ -226,6 +265,7 @@ public class Pin implements Serializable {
         inputStream.defaultReadObject();
         location = new LatLng(inputStream.readDouble(), inputStream.readDouble());
         cachedWifiFilter = "";
+        cachedCellularFilter = "";
     }
 
     public static void putAllToFile(ArrayList<Pin> pins, Context context) {

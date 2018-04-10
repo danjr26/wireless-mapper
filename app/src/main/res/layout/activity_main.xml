@@ -43,6 +43,22 @@
                     android:textSize="@dimen/tabFontSize" />
 
                 <TextView
+                    android:id="@+id/CellularTab"
+                    android:layout_width="@dimen/tabWidth"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@color/colorTab"
+                    android:clickable="true"
+                    android:focusable="auto"
+                    android:fontFamily="@font/open_sans"
+                    android:gravity="center"
+                    android:onClick="onTabClick"
+                    android:padding="4dp"
+                    android:text="Cellular"
+                    android:textColor="@color/colorTabText"
+                    android:textSize="@dimen/tabFontSize" />
+
+                <TextView
                     android:id="@+id/BluetoothTab"
                     android:layout_width="@dimen/tabWidth"
                     android:layout_height="match_parent"
@@ -94,6 +110,19 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/CellularTabContent"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@color/colorContent"
+                    android:orientation="vertical">
+
+                    <ListView
+                        android:id="@+id/CellularList"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+                </LinearLayout>
+
+                <LinearLayout
                     android:id="@+id/WifiTabContent"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
@@ -102,43 +131,10 @@
                     android:elevation="0dp"
                     android:orientation="vertical">
 
-                    <TextView
-                        android:id="@+id/ToMapButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="30dp"
-                        android:clickable="true"
-                        android:onClick="onToMapButtonClick"
-                        android:text="To Map →"
-                        android:textAlignment="center"
-                        android:visibility="gone" />
-
-                    <TextView
-                        android:id="@+id/textView"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="16dp"
-                        android:background="@color/colorContent"
-                        android:elevation="5dp"
-                        android:fontFamily="@font/open_sans_light"
-                        android:outlineProvider="background"
-                        android:padding="8dp"
-                        android:text="Wifi Tab!"
-                        android:textColor="@color/colorDefaultText"
-                        android:textSize="18sp"
-                        android:visibility="gone" />
-
                     <ListView
                         android:id="@+id/WifiList"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/CellularTab"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical">
 
                 </LinearLayout>
 
@@ -160,7 +156,7 @@
         android:layout_height="match_parent"
         android:background="@color/colorContent"
         android:elevation="1000dp"
-        android:visibility="visible">
+        android:visibility="gone">
 
         <TextView
             android:id="@+id/LoadingScreenText"

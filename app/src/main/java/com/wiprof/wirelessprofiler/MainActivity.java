@@ -13,6 +13,8 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.telephony.CellInfo;
+import android.telephony.TelephonyManager;
 import android.text.Html;
 import android.transition.Explode;
 import android.view.HapticFeedbackConstants;
@@ -27,34 +29,44 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 import static android.content.Intent.FLAG_ACTIVITY_NO_ANIMATION;
 
 public class MainActivity extends AppCompatActivity {
     public static final int MY_PERMISSIONS_FINE_LOCATION = 0;
+    public static final int MY_PERMISSIONS_READ_PHONE_STATE = 1;
     private static MainActivity INSTANCE;
 
     private FusedLocationProviderClient locationProvider;
     private Location lastLocation;
 
+    private TelephonyManager cellularManager;
+
     private SharedPreferences wifiByteToNamePairing;
     private SharedPreferences wifiSSIDToIndexPairing;
 
+    private SharedPreferences cellularIDToNamePairing;
+    private SharedPreferences cellularTypeToIndexPairing;
+
     private WifiRefresher wifiRefresher;
+    private CellularRefresher cellularRefresher;
     private HashMap<TextView, View> tabToContentPairing;
 
     private int activeTabId;
     private int activeTabContentId;
 
-    private ArrayList<WifiAccessPoint> accessPoints;
-    private WifiAccessPointAdapter accessPointAdapter;
+    private ArrayList<WifiAccessPoint> wifiAccessPoints;
+    private WifiAccessPointAdapter wifiAccessPointAdapter;
+
+    private ArrayList<CellularAccessPoint> cellularAccessPoints;
+    private CellularAccessPointAdapter cellularAccessPointAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +82,8 @@ public class MainActivity extends AppCompatActivity {
         locationProvider = LocationServices.getFusedLocationProviderClient(this);
         lastLocation = null;
 
+        cellularManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+
         LocationRequest locationRequest = new LocationRequest();
         locationRequest.setInterval(1000);
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
@@ -77,13 +91,7 @@ public class MainActivity extends AppCompatActivity {
         LocationCallback locationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult result) {
-                Location location = result.getLastLocation();
-                String text = Double.toString(location.getLatitude()) + " lat\n" +
-                        Double.toString(location.getLongitude()) + " long\nwithin " +
-                        Float.toString(location.getAccuracy()) + " m";
-                ((TextView)findViewById(R.id.textView)).setText(text);
-
-                lastLocation = location;
+                lastLocation = result.getLastLocation();
             }
         };
 
@@ -101,6 +109,9 @@ public class MainActivity extends AppCompatActivity {
         wifiByteToNamePairing = getSharedPreferences(getString(R.string.wifi_byte_to_ssid_pref_key), MODE_PRIVATE);
         wifiSSIDToIndexPairing = getSharedPreferences(getString(R.string.wifi_ssid_to_index_pref_key), MODE_PRIVATE);
 
+        cellularIDToNamePairing = getSharedPreferences(getString(R.string.cellular_id_to_name_pref_key), MODE_PRIVATE);
+        cellularTypeToIndexPairing = getSharedPreferences(getString(R.string.cellular_type_to_index_pref_key), MODE_PRIVATE);
+
         /*
         SharedPreferences.Editor byteToNameEditor = wifiByteToNamePairing.edit();
         SharedPreferences.Editor ssidToIndexEditor = wifiSSIDToIndexPairing.edit();
@@ -110,15 +121,20 @@ public class MainActivity extends AppCompatActivity {
         ssidToIndexEditor.commit();
         */
 
-        accessPoints = new ArrayList<>();
-        accessPointAdapter = new WifiAccessPointAdapter(this, accessPoints);
-        ListView accessPointListView = findViewById(R.id.WifiList);
-        accessPointListView.setAdapter(accessPointAdapter);
+        wifiAccessPoints = new ArrayList<>();
+        wifiAccessPointAdapter = new WifiAccessPointAdapter(this, wifiAccessPoints);
+        ((ListView)findViewById(R.id.WifiList)).setAdapter(wifiAccessPointAdapter);
 
-        wifiRefresher = new WifiRefresher(accessPointAdapter, 5000);
+        cellularAccessPoints = new ArrayList<>();
+        cellularAccessPointAdapter = new CellularAccessPointAdapter(this, cellularAccessPoints);
+        ((ListView)findViewById(R.id.CellularList)).setAdapter(cellularAccessPointAdapter);
+
+        wifiRefresher = new WifiRefresher(this, 1000);
+        cellularRefresher = new CellularRefresher(this, 1000);
 
         tabToContentPairing = new HashMap<>();
         tabToContentPairing.put((TextView) findViewById(R.id.WifiTab), findViewById(R.id.WifiTabContent));
+        tabToContentPairing.put((TextView) findViewById(R.id.CellularTab), findViewById(R.id.CellularTabContent));
         tabToContentPairing.put((TextView) findViewById(R.id.BluetoothTab), findViewById(R.id.BluetoothTabContent));
 
         getLayoutInflater().inflate(R.layout.item_wifi_access_point, (ViewGroup)findViewById(R.id.BluetoothTabContent), true);
@@ -195,7 +211,14 @@ public class MainActivity extends AppCompatActivity {
             view.setBackgroundColor(getResources().getColor(R.color.colorContent));
             view.findViewById(R.id.TrackButton).setVisibility(View.GONE);
             view.findViewById(R.id.InfoButton).setVisibility(View.GONE);
-            wifiRefresher.Resume();
+            switch(getActiveTabId()) {
+                case R.id.WifiTab:
+                    wifiRefresher.Resume();
+                    break;
+                case R.id.CellularTab:
+                    cellularRefresher.Resume();
+                    break;
+            }
         } else {
             for(int i = 0; i < ((ViewGroup)view.getParent()).getChildCount(); i++) {
                 View child = ((ViewGroup)view.getParent()).getChildAt(i);
@@ -211,7 +234,14 @@ public class MainActivity extends AppCompatActivity {
             view.setBackgroundColor(getResources().getColor(R.color.colorContentSelected));
             view.findViewById(R.id.TrackButton).setVisibility(View.VISIBLE);
             view.findViewById(R.id.InfoButton).setVisibility(View.VISIBLE);
-            wifiRefresher.Pause();
+            switch(getActiveTabId()) {
+                case R.id.WifiTab:
+                    wifiRefresher.Pause();
+                    break;
+                case R.id.CellularTab:
+                    cellularRefresher.Pause();
+                    break;
+            }
         }
         view.invalidate();
         view.requestLayout();
@@ -220,7 +250,7 @@ public class MainActivity extends AppCompatActivity {
     public void onInfoButtonClick(View view) {
         view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
         int index = (int)((View)view.getParent()).getTag();
-        WifiAccessPoint accessPoint = wifiRefresher.accessPointAdapter.getItem(index);
+        WifiAccessPoint accessPoint = wifiAccessPointAdapter.getItem(index);
         Intent infoIntent = new Intent(this, WifiInfoActivity.class);
         infoIntent.putExtra("accessPoint", accessPoint);
         startActivity(infoIntent);
@@ -237,17 +267,24 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 int index = (int)((View)finalView.getParent()).getTag();
-                WifiAccessPoint accessPoint = wifiRefresher.accessPointAdapter.getItem(index);
 
                 Intent mapIntent = new Intent(getApplicationContext(), PinMap.class);
-                /*Pin pin = new Pin(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()),
-                        new ArrayList<>(accessPoints), wifiRefresher.lastRefreshTime);
-                ArrayList<Pin> pins = new ArrayList<>(1);
-                pins.add(pin);
-                Pin.putAllToIntent(pins, mapIntent);*/
 
-                mapIntent.putExtra("filterMode", PinMap.FilterMode.FILTER_WIFI);
-                mapIntent.putExtra("filter", accessPoint.getName());
+                switch(getActiveTabId()) {
+                    case R.id.WifiTab: {
+                        WifiAccessPoint accessPoint = wifiAccessPointAdapter.getItem(index);
+                        mapIntent.putExtra("filterMode", PinMap.FilterMode.FILTER_WIFI);
+                        mapIntent.putExtra("filter", accessPoint.getName());
+                        break;
+                    }
+                    case R.id.CellularTab: {
+                        CellularAccessPoint accessPoint = cellularAccessPointAdapter.getItem(index);
+                        mapIntent.putExtra("filterMode", PinMap.FilterMode.FILTER_CELLULAR);
+                        mapIntent.putExtra("filter", accessPoint.getName());
+                        break;
+                    }
+                }
+
                 mapIntent.putExtra("lastLatitude", lastLocation.getLatitude());
                 mapIntent.putExtra("lastLongitude", lastLocation.getLongitude());
                 mapIntent.addFlags(FLAG_ACTIVITY_NO_ANIMATION);
@@ -260,11 +297,11 @@ public class MainActivity extends AppCompatActivity {
         view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
         Intent mapIntent = new Intent(this, PinMap.class);
         mapIntent.putExtra("filterMode", PinMap.FilterMode.FILTER_WIFI);
-        mapIntent.putExtra("filter", accessPoints.get(0).getName());
+        mapIntent.putExtra("filter", wifiAccessPoints.get(0).getName());
         startActivity(mapIntent);
     }
 
-    public String tagSSID(@NonNull String ssid, @NonNull String bssid) {
+    public String tagWifiAccessPointName(@NonNull String ssid, @NonNull String bssid) {
         String name = wifiByteToNamePairing.
                 getString(ssid + " " + bssid, "");
         if(name == "") {
@@ -276,10 +313,36 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 name = ssid;
             }
+
             byteToNameEditor.putString(ssid + " " + bssid, name);
             ssidToIndexEditor.putInt(ssid, index + 1);
+
             byteToNameEditor.commit();
             ssidToIndexEditor.commit();
+        }
+        return name;
+    }
+
+    public String tagCellularAccessPointName(CellularAccessPoint.GeneralNetworkType generalNetworkType, String uniqueCellString) {
+        String generalNetworkTypeString = CellularAccessPoint.generalNetworkTypeToString(generalNetworkType);
+        String name = cellularIDToNamePairing.getString(uniqueCellString, "");
+
+        if(name == "") {
+            SharedPreferences.Editor idToNameEditor = cellularIDToNamePairing.edit();
+            SharedPreferences.Editor typeToIndexEditor = cellularTypeToIndexPairing.edit();
+
+            int index = cellularTypeToIndexPairing.getInt(generalNetworkTypeString, 1);
+            if(index > 1) {
+                name = generalNetworkTypeString + " Network [" + Integer.toString(index) + "]";
+            } else {
+                name = generalNetworkTypeString + " Network";
+            }
+
+            idToNameEditor.putString(uniqueCellString, name);
+            typeToIndexEditor.putInt(generalNetworkTypeString, index + 1);
+
+            idToNameEditor.commit();
+            typeToIndexEditor.commit();
         }
         return name;
     }
@@ -290,19 +353,19 @@ public class MainActivity extends AppCompatActivity {
 
     private class WifiRefresher implements Runnable {
         private int delay;
-        private WifiAccessPointAdapter accessPointAdapter;
+        private MainActivity activity;
         private List<ScanResult> lastScanResults;
         private Handler handler;
         private long lastRefreshTime;
         private boolean isPaused;
 
-        public WifiRefresher(WifiAccessPointAdapter in_accessPointAdapter, int in_delay) {
-            accessPointAdapter = in_accessPointAdapter;
-            delay = in_delay;
-            handler = new Handler();
+        private WifiRefresher(MainActivity activity, int delay) {
+            this.activity = activity;
+            this.delay = delay;
+            this.handler = new Handler();
             handler.post(this);
-            lastRefreshTime = 0L;
-            isPaused = false;
+            this.lastRefreshTime = 0L;
+            this.isPaused = false;
         }
 
         @Override
@@ -311,13 +374,14 @@ public class MainActivity extends AppCompatActivity {
             List<ScanResult> scanResults = wifiManager.getScanResults();
             lastRefreshTime = System.currentTimeMillis();
 
-            Collections.sort(scanResults, new SacnResultStrengthComparator());
+            Collections.sort(scanResults, new ScanResultStrengthComparator());
+            WifiAccessPointAdapter adapter = activity.wifiAccessPointAdapter;
 
             if (!isPaused) {
-                accessPointAdapter.clear();
+                adapter.clear();
                 for (ScanResult result : scanResults) {
                     if (result != null) {
-                        accessPointAdapter.add(new WifiAccessPoint(result));
+                        adapter.add(new WifiAccessPoint(result));
                     }
                 }
             }
@@ -333,7 +397,7 @@ public class MainActivity extends AppCompatActivity {
             isPaused = false;
         }
 
-        private class SacnResultStrengthComparator implements Comparator<ScanResult> {
+        private class ScanResultStrengthComparator implements Comparator<ScanResult> {
             @Override
             public int compare(ScanResult a, ScanResult b) {
                 if(a.level > b.level) {
@@ -344,6 +408,47 @@ public class MainActivity extends AppCompatActivity {
                 }
                 return 0;
             }
+        }
+    }
+
+    private class CellularRefresher implements Runnable {
+        private int delay;
+        private Handler handler;
+        private boolean isPaused;
+        MainActivity activity;
+
+        private CellularRefresher(MainActivity activity, int delay) {
+            this.delay = delay;
+            this.handler = new Handler();
+            handler.post(this);
+            this.isPaused = false;
+            this.activity = activity;
+        }
+
+        @Override
+        public void run() {
+            if(Build.VERSION.SDK_INT >= 23 && checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.READ_PHONE_STATE}, MainActivity.MY_PERMISSIONS_READ_PHONE_STATE);
+            }
+            List<CellInfo> cellInfos = cellularManager.getAllCellInfo();
+            CellularAccessPointAdapter adapter = activity.cellularAccessPointAdapter;
+
+            if(!isPaused) {
+                adapter.clear();
+                for (CellInfo cellInfo : cellInfos) {
+                    adapter.add(new CellularAccessPoint(activity, cellInfo));
+                }
+            }
+
+            handler.postDelayed(this, delay);
+        }
+
+        private void Pause() {
+            isPaused = true;
+        }
+
+        private void Resume() {
+            isPaused = false;
         }
     }
 }
