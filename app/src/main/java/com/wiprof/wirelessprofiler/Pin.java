@@ -155,6 +155,9 @@ public class Pin implements Serializable {
         if (cachedCellularFilter.equals(filter)) {
             return cachedCellularAccessPoint;
         }
+        if(filter.contains(Integer.toString(Integer.MAX_VALUE))){
+            return null;
+        }
         for (int i = 0; i < cellularInfo.size(); i++) {
             CellularAccessPoint accessPoint = cellularInfo.get(i);
             if (accessPoint != null && accessPoint.getName().equals(filter)) {
@@ -178,6 +181,7 @@ public class Pin implements Serializable {
 
         if(marker != null) {
             marker.remove();
+            marker = null;
         }
 
         float alpha = 1.0f;
@@ -189,7 +193,7 @@ public class Pin implements Serializable {
             case FILTER_WIFI: {
                 WifiAccessPoint accessPoint = getWifiFilterResult(filter);
                 if(accessPoint == null) {
-                    return;
+                    break;
                 }
                 title = Integer.toString(accessPoint.getStrengthDbm()) + " Dbm";
 
@@ -197,7 +201,7 @@ public class Pin implements Serializable {
                 if (strength < -80) strength = -80;
                 if (strength > -40) strength = -40;
                 alpha = 1.0f;
-                hsv[0] = 200 + ((strength + 40) * 200 / 40);
+                hsv[0] = 130 + ((strength + 40) * 130 / 40);
                 hsv[1] = 1.0f;
                 hsv[2] = 1.0f;
                 break;
@@ -205,7 +209,7 @@ public class Pin implements Serializable {
             case FILTER_CELLULAR: {
                 CellularAccessPoint accessPoint = getCellularFilterResult(filter);
                 if(accessPoint == null) {
-                    return;
+                    break;
                 }
                 title = Integer.toString(accessPoint.getStrengthDbm()) + " Dbm";
 
@@ -213,13 +217,9 @@ public class Pin implements Serializable {
                 if (strength < -120) strength = -120;
                 if (strength > -60) strength = -60;
                 alpha = 1.0f;
-                hsv[0] = 200 + ((strength + 60) * 200 / 60);
+                hsv[0] = 130 + ((strength + 60) * 130 / 60);
                 hsv[1] = 1.0f;
                 hsv[2] = 1.0f;
-                break;
-            }
-            case FILTER_BLUETOOTH: {
-
                 break;
             }
         }

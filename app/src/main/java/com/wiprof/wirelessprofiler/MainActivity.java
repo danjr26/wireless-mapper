@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
 
     private WifiRefresher wifiRefresher;
     private CellularRefresher cellularRefresher;
-    private HashMap<TextView, View> tabToContentPairing;
+    private HashMap<View, View> tabToContentPairing;
 
     private int activeTabId;
     private int activeTabContentId;
@@ -101,9 +101,6 @@ public class MainActivity extends AppCompatActivity {
 
         locationProvider.requestLocationUpdates(locationRequest, locationCallback, null);
 
-        setActiveTab(findViewById(R.id.WifiTab));
-        setActiveTabContent(findViewById(R.id.WifiTabContent));
-
         getWindow().setExitTransition(new Explode());
 
         wifiByteToNamePairing = getSharedPreferences(getString(R.string.wifi_byte_to_ssid_pref_key), MODE_PRIVATE);
@@ -133,9 +130,11 @@ public class MainActivity extends AppCompatActivity {
         cellularRefresher = new CellularRefresher(this, 1000);
 
         tabToContentPairing = new HashMap<>();
-        tabToContentPairing.put((TextView) findViewById(R.id.WifiTab), findViewById(R.id.WifiTabContent));
-        tabToContentPairing.put((TextView) findViewById(R.id.CellularTab), findViewById(R.id.CellularTabContent));
-        tabToContentPairing.put((TextView) findViewById(R.id.BluetoothTab), findViewById(R.id.BluetoothTabContent));
+        tabToContentPairing.put(findViewById(R.id.WifiTab), findViewById(R.id.WifiTabContent));
+        tabToContentPairing.put(findViewById(R.id.CellularTab), findViewById(R.id.CellularTabContent));
+        tabToContentPairing.put(findViewById(R.id.BluetoothTab), findViewById(R.id.BluetoothTabContent));
+
+        setActiveTab(findViewById(R.id.WifiTab));
 
         getLayoutInflater().inflate(R.layout.item_wifi_access_point, (ViewGroup)findViewById(R.id.BluetoothTabContent), true);
 
@@ -151,7 +150,6 @@ public class MainActivity extends AppCompatActivity {
         tab.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
         View tabContent = tabToContentPairing.get(tab);
         setActiveTab(tab);
-        setActiveTabContent(tabContent);
     }
 
     public void setActiveTab(View tab) {
@@ -164,18 +162,15 @@ public class MainActivity extends AppCompatActivity {
         }
         tab.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
         ((TextView)tab).setTextColor(getResources().getColor(R.color.colorContent));
-    }
 
-    public int getActiveTabId() {
-        return activeTabId;
-    }
+        View tabContent = tabToContentPairing.get(tab);
 
-    public void setActiveTabContent(View tabContent) {
-        activeTabContentId = tabContent.getId();
         tabContent.bringToFront();
         ((View)tabContent.getParent()).invalidate();
         ((View)tabContent.getParent()).requestLayout();
     }
+
+    public int getActiveTabId() { return activeTabId; }
 
     public int getActiveTabContentId() {
         return activeTabContentId;

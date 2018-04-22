@@ -72,7 +72,8 @@
                     android:padding="4dp"
                     android:text="Bluetooth"
                     android:textColor="@color/colorTabText"
-                    android:textSize="@dimen/tabFontSize" />
+                    android:textSize="@dimen/tabFontSize"
+                    android:visibility="gone" />
             </LinearLayout>
         </HorizontalScrollView>
 
@@ -92,7 +93,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:background="@color/colorContent"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:visibility="gone">
 
                     <TextView
                         android:id="@+id/textView1"
@@ -106,7 +108,8 @@
                         android:padding="8dp"
                         android:text="Bluetooth Tab!"
                         android:textColor="@color/colorDefaultText"
-                        android:textSize="18sp" />
+                        android:textSize="18sp"
+                        android:visibility="gone" />
                 </LinearLayout>
 
                 <LinearLayout

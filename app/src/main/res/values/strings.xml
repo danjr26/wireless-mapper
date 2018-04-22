@@ -11,17 +11,57 @@
     <string name="wifi_info_activity_title">WiFi Info</string>
     <string name="wifi_info_box_default_text">Tap on anything above to learn more.</string>
     <string name="wifi_ssid_attribute_info">
-        An access point\'s &lt;b&gt;SSID&lt;/b&gt; (&lt;b&gt;S&lt;/b&gt;ervice &lt;b&gt;S&lt;/b&gt;et
-        &lt;b&gt;ID&lt;/b&gt;entifier) is the name of the WiFi service set, or network, visible to the phone.
-        This is the name given in the phone\'s WiFi settings.&lt;br&gt;Different
-        physical access points can have the same &lt;b&gt;SSID&lt;/b&gt; - they are not unique.
-        This is commonly the case when an organization such as a business or school wants to
+        &lt;b&gt;SSID&lt;/b&gt; stands for &lt;b&gt;S&lt;/b&gt;ervice &lt;b&gt;S&lt;/b&gt;et
+        &lt;b&gt;ID&lt;/b&gt;entifier. It is the name of the WiFi network visible to the phone. &lt;br&gt;Different
+        access points can have the same &lt;b&gt;SSID&lt;/b&gt; - they are not necessarily unique.
+        Multiple access points with the same &lt;b&gt;SSID&lt;/b&gt; are often seen around large
+        campuses, where an organization like a school or business might use several access points to
+        extend a single WiFi network over a large area.
     </string>
-    <string name="wifi_bssid_attribute_info">BSSID info</string>
-    <string name="wifi_capabilities_attribute_info">Capabilities info</string>
-    <string name="wifi_frequency_attribute_info">Frequency info</string>
-    <string name="wifi_channel_attribute_info">Channel info</string>
-    <string name="wifi_access_point_attribute_info">Name and &lt;b&gt;power&lt;/b&gt; info</string>
+    <string name="wifi_bssid_attribute_info">
+        &lt;b&gt;BSSID&lt;/b&gt; stands for &lt;b&gt;B&lt;/b&gt;asic &lt;b&gt;S&lt;/b&gt;ervice &lt;b&gt;S&lt;/b&gt;et
+        &lt;b&gt;ID&lt;/b&gt;entifier. It is a number which is unique to a specific access point. The access point
+        uses it to identify itself to the phone and other computers over the internet. It is equivalent
+        to the access point's MAC address.
+    </string>
+    <string name="wifi_capabilities_attribute_info">
+        The &lt;b&gt;capabilities&lt;/b&gt; string gives certain technical information about
+        the network. Here is a summary of some of the more common acronyms: &lt;/br&gt;
+        &lt;b&gt;WEP&lt;/b&gt;, &lt;b&gt;WPA&lt;/b&gt;, &lt;b&gt;WPA2&lt;/b&gt;: Signifies the method the network uses to encrypt
+        your data. &lt;b&gt;WEP&lt;/b&gt; is the oldest and least secure method, while WPA2 is the newest and most secure.
+        Any letters immediately following one of these separated by hyphens indicate more specific information
+        about the access point\'s encryption and data transfer protocols.&lt;/br&gt;
+        &lt;b&gt;ESS&lt;/b&gt; stands for Extended Service Set, meaning that this access point is one of multiple
+        that all share the same network.
+    </string>
+    <string name="wifi_frequency_attribute_info">
+        The &lt;b&gt;frequency&lt;/b&gt; a WiFi access point can determine its range and speed. Higher frequencies
+        (in the 5000 Mhz range) will allow data transfer but can only operate over a relatively small area.
+        Lower frequencies (in the 2400 Mhz range) serve a wider range at the cost of slower service speed.
+        Access points with frequencies too close together (within 10 Mhz) can interfere and cause data
+        loss and therefore slower speeds.
+    </string>
+    <string name="wifi_channel_attribute_info">
+        The &lt;b&gt;channel&lt;/b&gt; is a number assigned to a specific frequency. To avoid interfering
+        with other types of wireless signals like BlueTooth or cellular signals, only certain frequencies
+        can be used for WiFi, and each of these is given a channel number by convention.
+    </string>
+    <string name="wifi_access_point_attribute_info">
+        This box shows basic information about a WiFi wireless &lt;b&gt;access point&lt;/b&gt;. "Access point" here
+        signifies the physical router that is transmitting the WiFi signal. A WiFi network is composed
+        of one or more access points.&lt;/br&gt;
+        The icon to the left of the box indicates the strength of the signal received by your phone
+        from this access point.&lt;/br&gt;
+        To the right of the icon is the name of the access point, consisting of
+        the name (SSID) of the WiFi network and, optionally, a number to differentiate access points
+        with the same SSID. Note that this number is not actually determined by anything about the
+        access point itself, but is assigned by this app to the access points in the order they are
+        first seen, and so may differ from phone to phone.&lt;/br&gt;
+        On the right side of the box is the numerical value of the power (strength) of the WiFi signal, given
+        in two different units. Dbm (decibel-milliwatts) is a logarithmic unit, so that increasing
+        the number by ten actually indicates an increase of ten &lt;i&gt;times&lt;/i&gt; the power.
+        Pw (picowatts) is a normal linear unit, so doubling the number indicates a doubling of power.
+    </string>
     <string name="title_activity_pin_map">Pin Map</string>
     <string name="no_signal_message">no signal</string>
     <string name="wifi_strength_dbm_format">%d Dbm</string>

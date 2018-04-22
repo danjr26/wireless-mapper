@@ -61,6 +61,7 @@ import static com.wiprof.wirelessprofiler.CellularAccessPoint.GeneralNetworkType
 
 public class CellularAccessPoint implements Serializable {
     public static final long serialVersionUID = 3L;
+
     public enum GeneralNetworkType {
         CDMA,
         GSM,
@@ -81,6 +82,18 @@ public class CellularAccessPoint implements Serializable {
     private double longitude;
 
     private boolean isRegistered;
+
+    public CellularAccessPoint(CellularAccessPoint accessPoint) {
+        this.generalNetworkType = accessPoint.generalNetworkType;
+        this.strengthDbm = accessPoint.strengthDbm;
+        this.mobileCountryCode = accessPoint.mobileCountryCode;
+        this.mobileNetworkCode = accessPoint.mobileNetworkCode;
+        this.locationAreaCode = accessPoint.locationAreaCode;
+        this.cellID = accessPoint.cellID;
+        this.latitude = accessPoint.latitude;
+        this.longitude = accessPoint.longitude;
+        this.isRegistered = accessPoint.isRegistered;
+    }
 
     public CellularAccessPoint(Context context, CellInfo cellularInfo) {
         isRegistered = cellularInfo.isRegistered();
@@ -169,7 +182,7 @@ public class CellularAccessPoint implements Serializable {
         ((TextView)view.findViewById(R.id.AccessPointStrengthDbm)).setText(Integer.toString(getStrengthDbm()) + " Dbm");
         ((TextView)view.findViewById(R.id.AccessPointPw)).setText(Integer.toString(getStrengthFw()) + " fW");
         ((ImageView)view.findViewById(R.id.CellularIcon)).getLayoutParams().width =
-                getIconSize(MainActivity.getInstance().getResources().getDimensionPixelSize(R.dimen.wifiIconMaxHeight), -120, -60);
+                getIconSize(MainActivity.getInstance().getResources().getDimensionPixelSize(R.dimen.wifiIconMaxHeight), -120, -70);
 
         if(!isIDValid()) {
             Button trackButton = ((Button)view.findViewById(R.id.TrackButton));
@@ -389,5 +402,9 @@ public class CellularAccessPoint implements Serializable {
 
     public LatLng getLocation() {
         return new LatLng(latitude, longitude);
+    }
+
+    public void Drain() {
+        strengthDbm = 0;
     }
 }

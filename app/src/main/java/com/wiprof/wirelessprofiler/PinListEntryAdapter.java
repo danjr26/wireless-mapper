@@ -46,18 +46,31 @@ public class PinListEntryAdapter extends ArrayAdapter<Pin> {
         String currentFilterStrength = "";
 
         switch(activity.getFilterMode()) {
-            case FILTER_WIFI:
+            case FILTER_WIFI: {
                 String format = activity.getResources().getString(R.string.wifi_strength_dbm_format);
                 WifiAccessPoint filterResult = pin.getWifiFilterResult(activity.getFilter());
-                if(filterResult == null) {
+                if (filterResult == null) {
                     currentFilterStrength = activity.getResources().getString(R.string.no_signal_message);
                 } else {
                     int strengthDbm = filterResult.getStrengthDbm();
                     currentFilterStrength = String.format(format, strengthDbm);
                 }
+            }
 
-            case FILTER_BLUETOOTH:
-            case FILTER_CELLULAR:
+            break;
+
+            case FILTER_CELLULAR: {
+                String format = activity.getResources().getString(R.string.wifi_strength_dbm_format);
+                CellularAccessPoint filterResult = pin.getCellularFilterResult(activity.getFilter());
+                if (filterResult == null) {
+                    currentFilterStrength = activity.getResources().getString(R.string.no_signal_message);
+                } else {
+                    int strengthDbm = filterResult.getStrengthDbm();
+                    currentFilterStrength = String.format(format, strengthDbm);
+                }
+            }
+
+            break;
         }
 
         ((ImageView)convertView.findViewById(R.id.PinIcon)).setColorFilter(pin.getColor(), PorterDuff.Mode.MULTIPLY);
